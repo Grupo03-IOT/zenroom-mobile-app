@@ -152,6 +152,8 @@ const _enToEs = <String, String>{
   'Noise': 'Ruido',
   'Temp.': 'Temp.',
   'Temperature': 'Temperatura',
+  'Early temperature warning': 'Aviso temprano de temperatura',
+  'min forecast': 'min de pronóstico',
   'Humidity': 'Humedad',
   'Presence': 'Presencia',
   'Free': 'Libre',

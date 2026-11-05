@@ -1,5 +1,30 @@
 enum RoomStatus { optimal, moderate, bad, noData }
 
+class TemperatureForecast {
+  const TemperatureForecast({
+    required this.probability,
+    required this.horizonMin,
+    required this.temperatureLimitC,
+    this.modelVersion,
+    this.generatedAt,
+  });
+
+  final double probability;
+  final int horizonMin;
+  final double temperatureLimitC;
+  final String? modelVersion;
+  final DateTime? generatedAt;
+
+  factory TemperatureForecast.fromJson(Map<String, dynamic> json) =>
+      TemperatureForecast(
+        probability: (json['probability'] as num).toDouble(),
+        horizonMin: (json['horizonMin'] as num).toInt(),
+        temperatureLimitC: (json['temperatureLimitC'] as num).toDouble(),
+        modelVersion: json['modelVersion'] as String?,
+        generatedAt: DateTime.tryParse('${json['generatedAt'] ?? ''}'),
+      );
+}
+
 class LatestReading {
   const LatestReading({
     this.timestamp,
@@ -8,6 +33,7 @@ class LatestReading {
     this.humidity,
     this.ppd,
     this.occupancy,
+    this.forecast,
     this.complete = true,
   });
   final DateTime? timestamp;
@@ -16,6 +42,7 @@ class LatestReading {
   final double? humidity;
   final double? ppd;
   final double? occupancy;
+  final TemperatureForecast? forecast;
   final bool complete;
 
   factory LatestReading.fromJson(Map<String, dynamic> json) => LatestReading(
@@ -25,6 +52,11 @@ class LatestReading {
     humidity: (json['rhPct'] as num?)?.toDouble(),
     ppd: (json['ppd'] as num?)?.toDouble(),
     occupancy: (json['occupiedPct'] as num?)?.toDouble(),
+    forecast: json['forecast'] is Map
+        ? TemperatureForecast.fromJson(
+            Map<String, dynamic>.from(json['forecast'] as Map),
+          )
+        : null,
     complete: json['complete'] != false,
   );
 }
