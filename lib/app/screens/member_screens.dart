@@ -208,6 +208,27 @@ class RoomCard extends StatelessWidget {
             ),
           ],
         ),
+        if ((room.latest?.forecast?.probability ?? 0) >= 0.85) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF1D6),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${tr(context, 'Early temperature warning')}: '
+              '${(room.latest!.forecast!.probability * 100).round()}% · '
+              '${room.latest!.forecast!.horizonMin} ${tr(context, 'min forecast')}',
+              style: const TextStyle(
+                color: Color(0xFF795400),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ],
     ),
   );
