@@ -872,12 +872,11 @@ class _InsightsContentState extends State<InsightsContent> {
         'noiseAnomalies': ['2026-09-12T10:00:00Z'],
       });
     } else {
-      final now = DateTime.now();
       future = widget.controller.insights.roomInsights(
         widget.controller.token,
         id,
-        now.subtract(Duration(days: days)),
-        now,
+        DateTime.now(),
+        days,
       );
     }
   }

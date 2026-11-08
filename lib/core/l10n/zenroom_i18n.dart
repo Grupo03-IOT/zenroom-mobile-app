@@ -163,6 +163,9 @@ const _enToEs = <String, String>{
   'History is unavailable.': 'El historial no está disponible.',
   'No recent data for this room.': 'No hay datos recientes de esta sala.',
   'Door light: green · Auto': 'Luz de puerta: verde · Auto',
+  'Door light: amber · Auto': 'Luz de puerta: ámbar · Auto',
+  'Door light: red · Auto': 'Luz de puerta: roja · Auto',
+  'Door light: off · Auto': 'Luz de puerta: apagada · Auto',
   'Report discomfort': 'Reportar incomodidad',
   'Tell the site team what bothers you. We compare it with the reading of the room at that moment.':
       'Cuéntale al equipo de la sede qué te incomoda. Lo compararemos con la lectura de la sala en ese momento.',
