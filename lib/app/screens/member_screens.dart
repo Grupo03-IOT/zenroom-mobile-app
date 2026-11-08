@@ -442,17 +442,22 @@ class RoomDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.lightbulb_outline,
                             size: 18,
                             color: Color(0xFFF5A322),
                           ),
-                          SizedBox(width: 7),
+                          const SizedBox(width: 7),
                           LText(
-                            'Door light: green · Auto',
-                            style: TextStyle(color: ZenColors.muted),
+                            switch (room.status) {
+                              RoomStatus.optimal => 'Door light: green · Auto',
+                              RoomStatus.moderate => 'Door light: amber · Auto',
+                              RoomStatus.bad => 'Door light: red · Auto',
+                              RoomStatus.noData => 'Door light: off · Auto',
+                            },
+                            style: const TextStyle(color: ZenColors.muted),
                           ),
                         ],
                       ),
