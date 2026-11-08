@@ -1,3 +1,4 @@
+import '../../../core/config/app_config.dart';
 import '../../../core/network/cloud_client.dart';
 
 class CloudInsightsRepository {
@@ -35,6 +36,33 @@ class CloudInsightsRepository {
           as Map,
     );
     return adapt(body);
+  }
+
+  /// Horas con evidencia suficiente (veredicto concluyente) del mes de [reference]: `hour` y `avgLaeq`.
+  /// Cloud promedia el ruido por energia y por hora local del sitio (US17).
+  Future<List<Map<String, dynamic>>> hourlyProfile(
+    String token,
+    String roomId,
+    DateTime reference,
+  ) async {
+    if (AppConfig.demoMode) {
+      return [
+        for (final hour in [8, 9, 10, 11, 12, 14, 16, 18])
+          {'hour': hour, 'avgLaeq': 38.0 + hour}
+      ];
+    }
+    final body = Map<String, dynamic>.from(
+      await client.request(
+            'GET',
+            '/api/v1/insights/rooms/$roomId/hourly-profile?period=${periodFor(reference, 30)}',
+            token: token,
+          )
+          as Map,
+    );
+    return (body['hours'] as List? ?? const [])
+        .map((slot) => Map<String, dynamic>.from(slot as Map))
+        .where((slot) => slot['verdict'] == 'conclusive' && slot['avgLaeq'] != null)
+        .toList();
   }
 
   static Map<String, dynamic> adapt(Map<String, dynamic> body) {
