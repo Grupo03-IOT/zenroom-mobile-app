@@ -39,7 +39,7 @@ class CloudIdentityRepository implements IdentityRepository {
               token: token,
               body: {
                 'code': code,
-                'scopes': ['readings:write', 'thresholds:read'],
+                'scopes': ['readings:write', 'thresholds:read', 'edges:heartbeat'],
               },
             )
             as Map;

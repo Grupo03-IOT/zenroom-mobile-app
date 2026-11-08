@@ -777,14 +777,9 @@ class _CredentialsContentState extends State<CredentialsContent> {
       ),
       const SizedBox(height: 14),
       if (!AppConfig.demoMode)
-        const Padding(
-          padding: EdgeInsets.only(bottom: 14),
-          child: ZenCard(
-            child: LText(
-              'Cloud API does not list or revoke existing credentials.',
-              style: TextStyle(color: ZenColors.muted),
-            ),
-          ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: _liveCredentials(widget.controller),
         ),
       if (AppConfig.demoMode) ...[
         ZenCard(
@@ -1155,6 +1150,183 @@ class _ReportsContentState extends State<ReportsContent> {
   }
 }
 
+
+/// Lista cargada desde Cloud: carga, error y vacio resueltos en un solo sitio.
+class LiveList extends StatefulWidget {
+  const LiveList({
+    super.key,
+    required this.load,
+    required this.itemBuilder,
+    this.empty = 'Nothing to show yet.',
+  });
+  final Future<List<Map<String, dynamic>>> Function() load;
+  final Widget Function(
+    BuildContext context,
+    Map<String, dynamic> item,
+    VoidCallback reload,
+  )
+  itemBuilder;
+  final String empty;
+  @override
+  State<LiveList> createState() => _LiveListState();
+}
+
+class _LiveListState extends State<LiveList> {
+  late Future<List<Map<String, dynamic>>> future = widget.load();
+  void reload() => setState(() => future = widget.load());
+
+  @override
+  Widget build(BuildContext context) =>
+      FutureBuilder<List<Map<String, dynamic>>>(
+        future: future,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return ZenCard(
+              child: LText(
+                snapshot.error.toString(),
+                style: const TextStyle(color: ZenColors.muted),
+              ),
+            );
+          }
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final items = snapshot.data!;
+          if (items.isEmpty) {
+            return ZenCard(
+              child: LText(
+                widget.empty,
+                style: const TextStyle(color: ZenColors.muted),
+              ),
+            );
+          }
+          return Column(
+            children: [
+              for (final item in items)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: ZenCard(
+                    child: widget.itemBuilder(context, item, reload),
+                  ),
+                ),
+            ],
+          );
+        },
+      );
+}
+
+String _when(dynamic value) =>
+    value == null ? 'Never reported' : value.toString().replaceFirst('T', ' ').split('.').first;
+
+Widget _liveDevices(AppController controller) => LiveList(
+  empty: 'No device has reported yet. Devices appear when their first reading arrives.',
+  load: () => controller.fleet.devices(controller.token),
+  itemBuilder: (context, device, _) {
+    final room = controller.rooms.where((r) => r.id == device['roomId']);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LText(
+          '${device['code']}',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        _pair('Room', room.isEmpty ? '—' : room.first.name),
+        _pair('Status', device['silent'] == true ? 'Offline' : 'Online'),
+        _pair('Last seen', _when(device['lastSeen'])),
+        _pair('Lost batches', '${device['lostBatches'] ?? 0}'),
+      ],
+    );
+  },
+);
+
+Widget _liveEdges(AppController controller) => LiveList(
+  empty: 'No Edge node has sent a heartbeat yet.',
+  load: () => controller.fleet.edges(controller.token),
+  itemBuilder: (context, edge, _) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      LText('${edge['code']}', style: Theme.of(context).textTheme.titleMedium),
+      const SizedBox(height: 8),
+      _pair('Status', edge['status'] == 'online' ? 'Online' : 'Offline'),
+      _pair('Version', '${edge['version'] ?? '—'}'),
+      _pair('Last seen', _when(edge['lastSeen'])),
+      _pair('Pending upload', '${edge['pendingUpload'] ?? 0}'),
+      _pair('Rooms reported', '${edge['roomsReported'] ?? 0}'),
+    ],
+  ),
+);
+
+Widget _liveMembers(AppController controller) => LiveList(
+  load: () => controller.fleet.users(controller.token),
+  itemBuilder: (context, user, reload) {
+    final roles = (user['roles'] as List? ?? const []).map((e) => '$e').toList();
+    final admin = roles.contains('ADMIN');
+    final active = user['active'] == true;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LText('${user['displayName']}', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        _pair('Email', '${user['email']}'),
+        _pair('Role', admin ? 'Admin' : 'Member'),
+        _pair('Status', active ? 'Account active' : 'Account deactivated'),
+        if (!admin)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () async {
+                try {
+                  await controller.fleet.setUserActive(
+                    controller.token,
+                    '${user['id']}',
+                    !active,
+                  );
+                  reload();
+                } catch (error) {
+                  if (context.mounted) showNotice(context, error.toString());
+                }
+              },
+              child: LText(active ? 'Deactivate' : 'Reactivate'),
+            ),
+          ),
+      ],
+    );
+  },
+);
+
+Widget _liveCredentials(AppController controller) => LiveList(
+  empty: 'No credentials yet.',
+  load: () => controller.fleet.credentials(controller.token),
+  itemBuilder: (context, item, reload) {
+    final active = item['active'] == true;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LText('${item['code']}', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        _pair('Permissions', (item['scopes'] as List? ?? const []).join(', ')),
+        _pair('Status', active ? 'Credential active' : 'Credential revoked'),
+        if (active)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () async {
+                try {
+                  await controller.fleet.revokeCredential(controller.token, '${item['id']}');
+                  reload();
+                } catch (error) {
+                  if (context.mounted) showNotice(context, error.toString());
+                }
+              },
+              child: const LText('Revoke'),
+            ),
+          ),
+      ],
+    );
+  },
+);
+
 class DevicesContent extends StatelessWidget {
   const DevicesContent({super.key, required this.controller});
   final AppController controller;
@@ -1168,12 +1340,7 @@ class DevicesContent extends StatelessWidget {
       ),
       const SizedBox(height: 14),
       if (!AppConfig.demoMode)
-        const ZenCard(
-          child: LText(
-            'Cloud API does not expose a device directory or registration endpoint.',
-            style: TextStyle(color: ZenColors.muted),
-          ),
-        )
+        _liveDevices(controller)
       else ...[
         Row(
           children: [
@@ -1227,6 +1394,7 @@ class DevicesContent extends StatelessWidget {
               ),
             ),
       ],
+      if (AppConfig.demoMode) ...[
       const SizedBox(height: 14),
       ZenCard(
         child: Column(
@@ -1249,6 +1417,7 @@ class DevicesContent extends StatelessWidget {
           ],
         ),
       ),
+      ],
     ],
   );
 }
@@ -1266,12 +1435,7 @@ class DiagnosticsContent extends StatelessWidget {
       ),
       const SizedBox(height: 14),
       if (!AppConfig.demoMode)
-        const ZenCard(
-          child: LText(
-            'Cloud API does not expose edge diagnostics yet.',
-            style: TextStyle(color: ZenColors.muted),
-          ),
-        )
+        _liveEdges(controller)
       else
         ZenCard(
           child: Column(
@@ -1302,12 +1466,7 @@ class MembersContent extends StatelessWidget {
       ),
       const SizedBox(height: 14),
       if (!AppConfig.demoMode)
-        const ZenCard(
-          child: LText(
-            'Cloud API does not list, invite or deactivate members.',
-            style: TextStyle(color: ZenColors.muted),
-          ),
-        )
+        _liveMembers(controller)
       else
         ZenCard(
           child: Column(
@@ -1328,6 +1487,7 @@ class MembersContent extends StatelessWidget {
             ],
           ),
         ),
+      if (AppConfig.demoMode) ...[
       const SizedBox(height: 14),
       ZenCard(
         child: Column(
@@ -1351,6 +1511,13 @@ class MembersContent extends StatelessWidget {
           ],
         ),
       ),
+      ] else ...[
+        const SizedBox(height: 14),
+        const LText(
+          'Invitations by email are not available yet: accounts are created with a password from the sign-up form.',
+          style: TextStyle(color: ZenColors.muted, fontSize: 12),
+        ),
+      ],
     ],
   );
 }
