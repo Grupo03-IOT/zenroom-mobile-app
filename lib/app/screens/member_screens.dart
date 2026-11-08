@@ -23,7 +23,7 @@ class MemberRoomsScreen extends StatefulWidget {
 
 class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
   String query = '';
-  String filter = 'Quiet';
+  String filter = ''; // sin filtro al abrir: el miembro ve todas las salas
   @override
   Widget build(BuildContext context) {
     final rooms = widget.controller.rooms.where((room) {
@@ -31,6 +31,7 @@ class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
         query.toLowerCase(),
       );
       final matchesFilter = switch (filter) {
+        'Quiet' => (room.latest?.noise ?? 100) < 50,
         'Cool' => (room.latest?.temperature ?? 999) < 24,
         'Free now' => room.isFree,
         'Floor 2' => room.floor.contains('2'),
@@ -73,7 +74,7 @@ class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
                             child: ChoiceChip(
                               label: LText(name),
                               selected: filter == name,
-                              onSelected: (_) => setState(() => filter = name),
+                              onSelected: (_) => setState(() => filter = filter == name ? '' : name),
                               selectedColor: ZenColors.paleBlue,
                               side: const BorderSide(color: ZenColors.border),
                               labelStyle: const TextStyle(fontSize: 12),
