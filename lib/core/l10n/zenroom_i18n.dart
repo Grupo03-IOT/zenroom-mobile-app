@@ -161,6 +161,8 @@ const _enToEs = <String, String>{
   'Usual noise by hour': 'Ruido habitual por hora',
   'dB(A) · usual level': 'dB(A) · nivel habitual',
   'History is unavailable.': 'El historial no está disponible.',
+  'Not enough readings yet for a reliable hourly profile.':
+      'Aún no hay lecturas suficientes para un perfil horario confiable.',
   'No recent data for this room.': 'No hay datos recientes de esta sala.',
   'Door light: green · Auto': 'Luz de puerta: verde · Auto',
   'Door light: amber · Auto': 'Luz de puerta: ámbar · Auto',

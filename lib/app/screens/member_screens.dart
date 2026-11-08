@@ -23,7 +23,7 @@ class MemberRoomsScreen extends StatefulWidget {
 
 class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
   String query = '';
-  String filter = 'Quiet';
+  String filter = ''; // sin filtro al abrir: el miembro ve todas las salas
   @override
   Widget build(BuildContext context) {
     final rooms = widget.controller.rooms.where((room) {
@@ -31,6 +31,7 @@ class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
         query.toLowerCase(),
       );
       final matchesFilter = switch (filter) {
+        'Quiet' => (room.latest?.noise ?? 100) < 50,
         'Cool' => (room.latest?.temperature ?? 999) < 24,
         'Free now' => room.isFree,
         'Floor 2' => room.floor.contains('2'),
@@ -73,7 +74,7 @@ class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
                             child: ChoiceChip(
                               label: LText(name),
                               selected: filter == name,
-                              onSelected: (_) => setState(() => filter = name),
+                              onSelected: (_) => setState(() => filter = filter == name ? '' : name),
                               selectedColor: ZenColors.paleBlue,
                               side: const BorderSide(color: ZenColors.border),
                               labelStyle: const TextStyle(fontSize: 12),
@@ -270,10 +271,9 @@ class RoomDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final readings = controller.monitoring.readings(
+    final profile = controller.insights.hourlyProfile(
       controller.token,
       room.id,
-      now.subtract(const Duration(hours: 12)),
       now,
     );
     return Scaffold(
@@ -364,8 +364,8 @@ class RoomDetailScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      FutureBuilder<List<Reading>>(
-                        future: readings,
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: profile,
                         builder: (context, snapshot) => ZenCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,26 +388,26 @@ class RoomDetailScreen extends StatelessWidget {
                                 const Center(child: CircularProgressIndicator())
                               else if (snapshot.data!.isEmpty)
                                 const LText(
-                                  'No recent data for this room.',
+                                  'Not enough readings yet for a reliable hourly profile.',
                                   style: TextStyle(color: ZenColors.muted),
                                 )
                               else
                                 SizedBox(
                                   height: 160,
-                                  child: Row(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: snapshot.data!.take(6).map((
-                                      reading,
-                                    ) {
-                                      final noise = reading.noise ?? 0;
-                                      return Column(
+                                    children: snapshot.data!.map((slot) {
+                                      final noise = (slot['avgLaeq'] as num).toDouble();
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                                        child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
                                         children: [
                                           Container(
-                                            width: 27,
+                                            width: 22,
                                             height: 50 + noise.clamp(0, 70),
                                             decoration: BoxDecoration(
                                               color: noise >= 50
@@ -419,7 +419,7 @@ class RoomDetailScreen extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 6),
                                           LText(
-                                            '${reading.timestamp.hour.toString().padLeft(2, '0')} h',
+                                            '${(slot['hour'] as num).toInt().toString().padLeft(2, '0')} h',
                                             style: const TextStyle(
                                               fontSize: 10,
                                               color: ZenColors.muted,
@@ -433,8 +433,9 @@ class RoomDetailScreen extends StatelessWidget {
                                             ),
                                           ),
                                         ],
-                                      );
+                                      ));
                                     }).toList(),
+                                  ),
                                   ),
                                 ),
                             ],
