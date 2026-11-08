@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/config/app_config.dart';
 import '../../core/l10n/zenroom_i18n.dart';
 import '../../core/theme/zenroom_theme.dart';
 import '../app_controller.dart';
@@ -32,7 +31,6 @@ class HomeShell extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 430),
             child: Column(
               children: [
-                if (AppConfig.demoMode) const DemoBanner(),
                 Expanded(child: body),
               ],
             ),

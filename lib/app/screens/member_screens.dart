@@ -26,7 +26,7 @@ class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
   String filter = ''; // sin filtro al abrir: el miembro ve todas las salas
   @override
   Widget build(BuildContext context) {
-    final rooms = widget.controller.rooms.where((room) {
+    final rooms = widget.controller.visibleRooms.where((room) {
       final matchesQuery = room.name.toLowerCase().contains(
         query.toLowerCase(),
       );
@@ -46,9 +46,7 @@ class _MemberRoomsScreenState extends State<MemberRoomsScreen> {
         children: [
           ScreenHeader(
             title: 'Rooms',
-            trailing: widget.admin
-                ? SitePicker(controller: widget.controller)
-                : null,
+            trailing: SitePicker(controller: widget.controller),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -503,7 +501,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rooms = widget.controller.rooms;
+    final rooms = widget.controller.visibleRooms;
     final selected = rooms.any((room) => room.id == roomId)
         ? roomId
         : rooms.isEmpty
@@ -735,9 +733,34 @@ class ProfileScreen extends StatelessWidget {
                     'site',
                     'Site',
                     controller.selectedSite?.name ?? '—',
-                    () => showNotice(
-                      context,
-                      'Choose a site from the selector on admin screens.',
+                    () => showModalBottomSheet<void>(
+                      context: context,
+                      builder: (sheetContext) => SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(title: LText('Select site')),
+                            if (controller.sites.isEmpty)
+                              const ListTile(
+                                title: LText('No sites available.'),
+                              ),
+                            for (final site in controller.sites)
+                              ListTile(
+                                title: Text(site.name),
+                                trailing: controller.selectedSite?.id == site.id
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: ZenColors.blue,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  controller.selectSite(site);
+                                  Navigator.pop(sheetContext);
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   _menu(

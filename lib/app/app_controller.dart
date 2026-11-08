@@ -45,6 +45,14 @@ class AppController extends ChangeNotifier {
   bool get signedIn => session != null && !session!.isExpired;
   bool get admin => session?.role == UserRole.admin;
   String get token => session?.token ?? '';
+  List<Room> get visibleRooms {
+    final site = selectedSite;
+    if (site == null || !rooms.any((room) => room.siteId != null)) {
+      return rooms;
+    }
+    return rooms.where((room) => room.siteId == site.id).toList();
+  }
+
   AppLanguage get language => languageNotifier.value;
 
   void setLanguage(AppLanguage value) {
@@ -90,7 +98,15 @@ class AppController extends ChangeNotifier {
       final loadedSites = await monitoring.sites(token);
       rooms = loadedRooms;
       sites = loadedSites;
-      if (selectedSite == null && sites.isNotEmpty) selectedSite = sites.first;
+      if (sites.isEmpty) {
+        selectedSite = null;
+      } else {
+        final selectedId = selectedSite?.id;
+        selectedSite = sites.firstWhere(
+          (site) => site.id == selectedId,
+          orElse: () => sites.first,
+        );
+      }
     } catch (error) {
       loadError = error.toString();
       if (error is CloudException && error.statusCode == 401) signOut();

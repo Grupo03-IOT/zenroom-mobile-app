@@ -67,6 +67,7 @@ class Room {
     required this.code,
     required this.name,
     required this.floor,
+    this.siteId,
     this.capacity,
     this.classified = true,
     this.latest,
@@ -75,6 +76,7 @@ class Room {
   final String code;
   final String name;
   final String floor;
+  final String? siteId;
   final int? capacity;
   final bool classified;
   final LatestReading? latest;
@@ -95,6 +97,7 @@ class Room {
     code: '${json['code'] ?? ''}',
     name: '${json['displayName'] ?? json['code'] ?? 'Room'}',
     floor: '${json['floor'] ?? ''}',
+    siteId: json['siteId']?.toString(),
     capacity: (json['capacity'] as num?)?.toInt(),
     classified: json['classified'] == true,
     latest: json['latest'] is Map
