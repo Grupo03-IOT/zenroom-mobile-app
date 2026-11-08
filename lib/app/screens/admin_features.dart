@@ -1270,7 +1270,7 @@ Widget _liveMembers(AppController controller) => LiveList(
         const SizedBox(height: 8),
         _pair('Email', '${user['email']}'),
         _pair('Role', admin ? 'Admin' : 'Member'),
-        _pair('Status', active ? 'Active' : 'Deactivated'),
+        _pair('Status', active ? 'Account active' : 'Account deactivated'),
         if (!admin)
           Align(
             alignment: Alignment.centerRight,
@@ -1306,7 +1306,7 @@ Widget _liveCredentials(AppController controller) => LiveList(
         LText('${item['code']}', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         _pair('Permissions', (item['scopes'] as List? ?? const []).join(', ')),
-        _pair('Status', active ? 'Active' : 'Revoked'),
+        _pair('Status', active ? 'Credential active' : 'Credential revoked'),
         if (active)
           Align(
             alignment: Alignment.centerRight,
@@ -1487,6 +1487,7 @@ class MembersContent extends StatelessWidget {
             ],
           ),
         ),
+      if (AppConfig.demoMode) ...[
       const SizedBox(height: 14),
       ZenCard(
         child: Column(
@@ -1510,6 +1511,13 @@ class MembersContent extends StatelessWidget {
           ],
         ),
       ),
+      ] else ...[
+        const SizedBox(height: 14),
+        const LText(
+          'Invitations by email are not available yet: accounts are created with a password from the sign-up form.',
+          style: TextStyle(color: ZenColors.muted, fontSize: 12),
+        ),
+      ],
     ],
   );
 }
