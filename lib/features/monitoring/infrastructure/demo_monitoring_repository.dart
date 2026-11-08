@@ -9,6 +9,12 @@ class DemoMonitoringRepository implements MonitoringRepository {
       name: 'Miraflores Hub',
       address: 'Lima, Peru',
     ),
+    const Site(
+      id: 'demo-site-2',
+      code: 'san-isidro',
+      name: 'San Isidro Hub',
+      address: 'Lima, Peru',
+    ),
   ];
   final List<RoomType> _types = [
     const RoomType(
@@ -33,6 +39,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
   final List<Room> _rooms = [
     Room(
       id: 'focus-1',
+      siteId: 'demo-site',
       code: 'focus-1',
       name: 'Focus Room',
       floor: 'Floor 3 · open area',
@@ -46,6 +53,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
     ),
     Room(
       id: 'booth-1',
+      siteId: 'demo-site',
       code: 'booth-1',
       name: 'Call Booth 1',
       floor: 'Floor 2 · call booth',
@@ -59,6 +67,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
     ),
     Room(
       id: 'booth-2',
+      siteId: 'demo-site',
       code: 'booth-2',
       name: 'Call Booth 2',
       floor: 'Floor 2 · call booth',
@@ -72,6 +81,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
     ),
     Room(
       id: 'meeting-a',
+      siteId: 'demo-site',
       code: 'meeting-a',
       name: 'Meeting Room A',
       floor: 'Floor 1 · meeting room',
@@ -85,6 +95,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
     ),
     Room(
       id: 'open-north',
+      siteId: 'demo-site',
       code: 'open-north',
       name: 'Open Area North',
       floor: 'Floor 2 · open area',
@@ -98,6 +109,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
     ),
     Room(
       id: 'lounge',
+      siteId: 'demo-site',
       code: 'lounge',
       name: 'Lounge',
       floor: 'Floor 1 · lounge',
@@ -134,6 +146,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
       ('study', 'Study Room', 'Floor 2 · study room', 36.0, 22.2, 0.0),
     ].map(
       (data) => Room(
+        siteId: 'demo-site',
         id: data.$1,
         code: data.$1,
         name: data.$2,
@@ -146,6 +159,20 @@ class DemoMonitoringRepository implements MonitoringRepository {
           humidity: 53,
           occupancy: data.$6,
         ),
+      ),
+    ),
+    Room(
+      id: 'san-isidro-meeting',
+      siteId: 'demo-site-2',
+      code: 'meeting-1',
+      name: 'Meeting Room 1',
+      floor: 'Floor 1',
+      latest: LatestReading(
+        timestamp: DateTime.now(),
+        noise: 41,
+        temperature: 23,
+        humidity: 52,
+        occupancy: 0,
       ),
     ),
   ];
@@ -210,6 +237,7 @@ class DemoMonitoringRepository implements MonitoringRepository {
     final previous = _rooms[index];
     final updated = Room(
       id: previous.id,
+      siteId: previous.siteId,
       code: previous.code,
       name: previous.name,
       floor: previous.floor,

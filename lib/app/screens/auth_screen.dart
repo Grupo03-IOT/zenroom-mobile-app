@@ -362,16 +362,6 @@ class _AuthShell extends StatelessWidget {
                           color: Color(0xFF8A9AA3),
                         ),
                       ),
-                      if (AppConfig.demoMode) ...[
-                        const SizedBox(height: 12),
-                        const LText(
-                          'Modo demo · datos de ejemplo',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: ZenColors.amber,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),

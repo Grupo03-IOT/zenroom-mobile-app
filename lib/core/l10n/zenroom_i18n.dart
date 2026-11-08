@@ -57,7 +57,6 @@ String translate(AppLanguage language, String source) {
 }
 
 const _esToEn = <String, String>{
-  'Modo demo · datos de ejemplo': 'Demo mode · sample data',
   'Ingresa tu correo y contraseña.': 'Enter your email and password.',
   'Completa los campos, usa 8 caracteres y acepta los términos.':
       'Complete the fields, use at least 8 characters and accept the terms.',
@@ -283,6 +282,7 @@ const _enToEs = <String, String>{
   'New': 'Nuevo',
   'Registered': 'Registrado',
   'Select site': 'Seleccionar sede',
+  'No sites available.': 'No hay sedes disponibles.',
   'Select room': 'Seleccionar sala',
   'Floor': 'Piso',
   'Capacity': 'Capacidad',
@@ -349,5 +349,4 @@ const _enToEs = <String, String>{
       'Tendencias por sala y su relación con el clima exterior.',
   'Warning must be below critical and duration must be positive.':
       'El umbral de advertencia debe ser menor que el crítico y la duración debe ser positiva.',
-  'Modo demo · datos de ejemplo': 'Modo demo · datos de ejemplo',
 };

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../core/config/app_config.dart';
 import '../../core/l10n/zenroom_i18n.dart';
 import '../../core/theme/zenroom_theme.dart';
 import '../../features/monitoring/domain/room.dart';
@@ -189,24 +188,6 @@ class ZenSectionTitle extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 8),
     child: LText(text, style: Theme.of(context).textTheme.titleMedium),
   );
-}
-
-class DemoBanner extends StatelessWidget {
-  const DemoBanner({super.key});
-  @override
-  Widget build(BuildContext context) {
-    if (!AppConfig.demoMode) return const SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
-      color: const Color(0xFFFFF4DC),
-      child: const LText(
-        'Modo demo · datos de ejemplo',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 11, color: ZenColors.amber),
-      ),
-    );
-  }
 }
 
 void showNotice(BuildContext context, String message) {
