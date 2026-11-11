@@ -8,6 +8,7 @@ import '../features/identity/infrastructure/cloud_identity_repository.dart';
 import '../features/insights/infrastructure/cloud_insights_repository.dart';
 import '../features/monitoring/domain/monitoring_repository.dart';
 import '../features/monitoring/domain/room.dart';
+import '../features/monitoring/infrastructure/cloud_fleet_repository.dart';
 import '../features/monitoring/infrastructure/cloud_monitoring_repository.dart';
 import '../features/monitoring/infrastructure/demo_monitoring_repository.dart';
 
@@ -20,11 +21,13 @@ class AppController extends ChangeNotifier {
         : CloudMonitoringRepository(client);
     thresholds = CloudThresholdRepository(client);
     insights = CloudInsightsRepository(client);
+    fleet = CloudFleetRepository(client);
   }
   late final CloudIdentityRepository identity;
   late final MonitoringRepository monitoring;
   late final CloudThresholdRepository thresholds;
   late final CloudInsightsRepository insights;
+  late final CloudFleetRepository fleet;
 
   Session? session;
   List<Room> rooms = [];
