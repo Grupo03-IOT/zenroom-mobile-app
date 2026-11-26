@@ -323,26 +323,17 @@ const _enToEs = <String, String>{
   'Choose a site from the selector on admin screens.':
       'Elige una sede desde el selector de las pantallas de administración.',
   'Create a room type first.': 'Primero crea un tipo de sala.',
-  'Create one key per edge node. It only sends readings.':
-      'Crea una clave por nodo Edge. Solo envía lecturas.',
   'Enter a node name.': 'Ingresa un nombre para el nodo.',
   'Credential created': 'Credencial creada',
   'Room classified.': 'Sala clasificada.',
   'Room type saved.': 'Tipo de sala guardado.',
   'Site saved.': 'Sede guardada.',
   'Thresholds saved.': 'Umbrales guardados.',
-  'Demo acknowledgement saved locally.':
-      'Confirmación de ejemplo guardada localmente.',
-  'Demo report saved locally.': 'Reporte de ejemplo guardado localmente.',
   'Demo thresholds updated for this screen.':
       'Umbrales de ejemplo actualizados en esta pantalla.',
   'Discomfort (PPD)': 'Incomodidad (PPD)',
   'Discomfort reports': 'Reportes de incomodidad',
-  'No demo discomfort reports yet.':
-      'Aún no hay reportes de incomodidad de ejemplo.',
   'Noise (LAeq)': 'Ruido (LAeq)',
-  'Noise (LAeq) · since 10:34': 'Ruido (LAeq) · desde las 10:34',
-  'Temperature · since 10:12': 'Temperatura · desde las 10:12',
   'Edge status · demo': 'Estado Edge · demo',
   'Cloud API does not expose a device directory or registration endpoint.':
       'Cloud API aún no ofrece un directorio ni registro de dispositivos.',
@@ -352,10 +343,6 @@ const _enToEs = <String, String>{
       'Cloud API no lista ni revoca credenciales existentes.',
   'Cloud API does not list, invite or deactivate members.':
       'Cloud API no lista, invita ni desactiva miembros.',
-  'Cloud API does not provide an alert listing endpoint yet.':
-      'Cloud API aún no ofrece una lista de alertas.',
-  'Cloud API does not provide member reports yet.':
-      'Cloud API aún no ofrece reportes de miembros.',
   'Connection and data quality of the local edge node.':
       'Conexión y calidad de datos del nodo Edge local.',
   'Edge devices download new values so alerts continue working without internet.':
@@ -376,4 +363,68 @@ const _enToEs = <String, String>{
       'Tendencias por sala y su relación con el clima exterior.',
   'Warning must be below critical and duration must be positive.':
       'El umbral de advertencia debe ser menor que el crítico y la duración debe ser positiva.',
+  'No open alerts. All rooms are within their thresholds.':
+      'No hay alertas abiertas. Todas las salas están dentro de sus umbrales.',
+  'No acknowledged alerts waiting to close.':
+      'No hay alertas atendidas pendientes de cierre.',
+  'No closed alerts yet.':
+      'Aún no hay alertas cerradas.',
+  'Sustained noise':
+      'Ruido sostenido',
+  'Thermal discomfort (PPD)':
+      'Incomodidad térmica (PPD)',
+  'Value':
+      'Valor',
+  'Acknowledge':
+      'Atender',
+  'Acknowledge alert':
+      'Atender alerta',
+  'Write the corrective action taken. It is saved with the alert.':
+      'Escribe la acción correctiva realizada. Se guarda con la alerta.',
+  'Alert acknowledged.':
+      'Alerta atendida.',
+  'Open alert':
+      'Alerta abierta',
+  'Acknowledged alert':
+      'Alerta atendida',
+  'Closed alert':
+      'Alerta cerrada',
+  'Closed at':
+      'Cerrada',
+  'The corrective action must have between 3 and 500 characters.':
+      'La acción correctiva debe tener entre 3 y 500 caracteres.',
+  'This alert is no longer open. Refresh the list.':
+      'Esta alerta ya no está abierta. Actualiza la lista.',
+  'Retry':
+      'Reintentar',
+  'Reports by room':
+      'Reportes por sala',
+  'No discomfort reports yet.':
+      'Aún no hay reportes de incomodidad.',
+  'Total':
+      'Total',
+  'Latest reports':
+      'Últimos reportes',
+  'No recent reading':
+      'Sin lectura reciente',
+  'Reason':
+      'Motivo',
+  'Sent':
+      'Enviado',
+  'Reading at that moment':
+      'Lectura en ese momento',
+  'Report sent. Thank you.':
+      'Reporte enviado. Gracias.',
+  'Sending…':
+      'Enviando…',
+  'You have not sent any report yet.':
+      'Aún no has enviado ningún reporte.',
+  'The comment can have up to 500 characters.':
+      'El comentario puede tener hasta 500 caracteres.',
+  'You already reported this in this room less than 10 minutes ago.':
+      'Ya reportaste este motivo en esta sala hace menos de 10 minutos.',
+  'This room no longer exists.':
+      'Esta sala ya no existe.',
+  'Create one key per edge node. It sends readings and alerts.':
+      'Crea una clave por nodo Edge. Envía lecturas y alertas.',
 };
