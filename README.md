@@ -52,9 +52,11 @@ Las acciones siguientes usan rutas verificadas en [Cloud API](https://github.com
 | Clasificar sala | `PATCH /api/v1/rooms/{id}` |
 | Configurar umbrales | `GET /api/v1/room-types/{id}/thresholds`, `PUT /api/v1/room-types/{id}/thresholds/{metric}` |
 | Analítica | `GET /api/v1/insights/rooms/{id}` |
-| Crear credencial Edge | `POST /api/v1/credentials` |
+| Crear credencial Edge | `POST /api/v1/credentials` (permisos `readings:write`, `thresholds:read`, `edges:heartbeat`, `alerts:write`) |
+| Alertas y reconocimiento | `GET /api/v1/alerts?status=OPEN\|ACKNOWLEDGED\|CLOSED`, `GET /api/v1/alerts/{id}`, `PATCH /api/v1/alerts/{id}/acknowledge` |
+| Reportes de incomodidad | `POST /api/v1/discomfort-reports`, `GET /api/v1/discomfort-reports`, `GET /api/v1/discomfort-reports/mine`, `GET /api/v1/discomfort-reports/summary` |
 
-El historial se puede copiar como CSV. Cloud API todavía no ofrece endpoints para enviar reportes de incomodidad, consultar o confirmar alertas, gestionar miembros, listar o revocar credenciales, registrar dispositivos, consultar diagnóstico Edge ni mandar órdenes al indicador de puerta. En modo real, esas acciones informan la limitación y no muestran un guardado falso. En modo demo, los datos están claramente identificados y los cambios de reportes o alertas solo viven en memoria.
+El historial se puede copiar como CSV. Las alertas se listan en las pestañas Activas, Atendidas y Cerradas; atender una alerta exige escribir la acción correctiva (de 3 a 500 caracteres) y el contador «requieren atención» del Resumen es el número de alertas abiertas. El miembro envía reportes de incomodidad (`NOISE`, `WARM`, `COLD`) y ve los suyos en **Perfil → Mis reportes**; el administrador ve en **Más → Reportes** el resumen por sala y cada reporte con la lectura de la sala en ese momento, sin el nombre de quien lo envió. Un mismo motivo en la misma sala solo se acepta una vez cada 10 minutos. En modo demo, alertas y reportes viven en memoria con las mismas reglas.
 
 La API actual tampoco devuelve la relación sala–local ni la relación sala–tipo en `RoomResource`. Por eso el selector de local sirve para administrar tipos y umbrales, pero el directorio de salas no puede filtrarse por local con certeza. El estado de confort de la lista se calcula visualmente a partir de las últimas lecturas; para coincidir exactamente con las alertas del Edge, Cloud API tendría que exponer el estado calculado.
 
@@ -79,4 +81,33 @@ flutter test
 flutter build apk --debug
 ```
 
-El APK de demostración ya compilado está en `Zenroom-demo.apk`. Al volver a compilar, Flutter genera el APK de depuración en `build/app/outputs/flutter-apk/app-debug.apk`. Para distribución, configura firma y entorno de producción antes de compilar una versión release.
+Al compilar, Flutter genera el APK de depuración en `build/app/outputs/flutter-apk/app-debug.apk`.
+
+## Run locally
+
+Demo mode (no servers, sample data in memory):
+
+```bash
+flutter pub get
+flutter run
+```
+
+Against the production Cloud API (the base URL has no `/api/v1`; the app adds it):
+
+```bash
+flutter run --dart-define=DEMO_MODE=false   --dart-define=CLOUD_API_URL=https://cafecito-app.icywater-8ce04e92.northcentralus.azurecontainerapps.io
+```
+
+The Azure service can take about 30 seconds to answer the first request after being idle (`/actuator/health` returns `UP` once it is awake).
+
+## Build the APK
+
+```bash
+flutter build apk --release --dart-define=DEMO_MODE=false   --dart-define=CLOUD_API_URL=https://cafecito-app.icywater-8ce04e92.northcentralus.azurecontainerapps.io
+```
+
+The APK is written to `build/app/outputs/flutter-apk/app-release.apk`. Release builds are signed with the debug key, which is enough for Firebase App Distribution and sideloading; no keystore is kept in the repository. Minimum Android version: 7.0 (API 24). Application id: `com.sensework.zenroom`.
+
+## Download
+
+The latest build is attached to the newest GitHub release: <https://github.com/Grupo03-IOT/zenroom-mobile-app/releases/latest>. Testers receive each release through Firebase App Distribution as an email invitation. To install the APK by hand, open it on the phone and allow installing apps from unknown sources when Android asks.
