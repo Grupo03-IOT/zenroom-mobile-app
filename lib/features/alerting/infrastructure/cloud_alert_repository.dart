@@ -64,12 +64,30 @@ class CloudAlertRepository implements AlertRepository {
       );
       return Alert.fromJson(Map<String, dynamic>.from(data as Map));
     } on CloudException catch (error) {
-      if (error.statusCode == 409) {
-        throw const AlertingException(
+      throw _readable(error);
+    }
+  }
+
+  /// Traduce el catalogo de errores de alerting a mensajes de la interfaz.
+  static Exception _readable(CloudException error) {
+    switch (error.code) {
+      case 'ALERTING_ALERT_NOT_OPEN':
+        return const AlertingException(
           'This alert is no longer open. Refresh the list.',
         );
-      }
-      rethrow;
+      case 'ALERTING_ALERT_NOT_FOUND':
+        return const AlertingException('This alert no longer exists.');
+      case 'ALERTING_CORRECTIVE_ACTION_REQUIRED':
+        return const AlertingException(
+          'The corrective action must have between 3 and 500 characters.',
+        );
     }
+    return switch (error.statusCode) {
+      409 => const AlertingException(
+        'This alert is no longer open. Refresh the list.',
+      ),
+      404 => const AlertingException('This alert no longer exists.'),
+      _ => error,
+    };
   }
 }

@@ -116,4 +116,70 @@ void main() {
       ),
     );
   });
+
+  test('maps the alerting error codes to readable messages', () async {
+    final cases = {
+      (400, 'ALERTING_CORRECTIVE_ACTION_REQUIRED'): 'between 3 and 500',
+      (404, 'ALERTING_ALERT_NOT_FOUND'): 'no longer exists',
+      (409, 'ALERTING_ALERT_NOT_OPEN'): 'no longer open',
+    };
+    for (final entry in cases.entries) {
+      respond = (_) => http.Response(
+        jsonEncode({
+          'code': entry.key.$2,
+          'message': 'server text',
+          'path': '/api/v1/alerts/a1/acknowledge',
+          'errors': [],
+        }),
+        entry.key.$1,
+      );
+      await expectLater(
+        repository.acknowledge('tok', 'a1', 'Asked for silence'),
+        throwsA(
+          isA<AlertingException>().having(
+            (e) => e.message,
+            'message',
+            contains(entry.value),
+          ),
+        ),
+      );
+    }
+  });
+
+  test('reads info severity and the thermal_discomfort rule', () async {
+    respond = (_) => http.Response(
+      jsonEncode([
+        {
+          ..._resource,
+          'rule': 'thermal_discomfort',
+          'severity': 'info',
+          'status': 'CLOSED',
+          'closed_at': '2026-11-08T14:30:00Z',
+          'closed_by': 'AUTO',
+        },
+      ]),
+      200,
+    );
+    final alert = (await repository.alerts('tok')).single;
+    expect(alert.rule, 'thermal_discomfort');
+    expect(alert.isNoise, isFalse);
+    expect(alert.severity, 'info');
+    expect(alert.status, AlertStatus.closed);
+    expect(alert.closedBy, 'AUTO');
+  });
+
+  test('other Cloud errors keep their status and code', () async {
+    respond = (_) => http.Response(
+      jsonEncode({'code': 'IAM_FORBIDDEN', 'message': 'Forbidden'}),
+      403,
+    );
+    await expectLater(
+      repository.alerts('tok'),
+      throwsA(
+        isA<CloudException>()
+            .having((e) => e.statusCode, 'statusCode', 403)
+            .having((e) => e.code, 'code', 'IAM_FORBIDDEN'),
+      ),
+    );
+  });
 }

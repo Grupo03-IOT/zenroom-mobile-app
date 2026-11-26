@@ -427,4 +427,8 @@ const _enToEs = <String, String>{
       'Esta sala ya no existe.',
   'Create one key per edge node. It sends readings and alerts.':
       'Crea una clave por nodo Edge. Envía lecturas y alertas.',
+  'Info':
+      'Información',
+  'This alert no longer exists.':
+      'Esta alerta ya no existe.',
 };

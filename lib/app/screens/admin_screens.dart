@@ -317,7 +317,7 @@ String _roomName(AppController controller, Alert alert) {
 
 String _ruleLabel(Alert alert) => switch (alert.rule) {
   'sustained_noise' => 'Sustained noise',
-  'discomfort' => 'Thermal discomfort (PPD)',
+  'thermal_discomfort' => 'Thermal discomfort (PPD)',
   _ => alert.rule,
 };
 
@@ -412,19 +412,24 @@ class _SeverityPill extends StatelessWidget {
   final String severity;
   @override
   Widget build(BuildContext context) {
-    final critical = severity.toLowerCase() == 'critical';
+    final (label, fg, bg) = switch (severity.toLowerCase()) {
+      'critical' => ('Critical', ZenColors.red, ZenColors.paleRed),
+      'info' => ('Info', ZenColors.blue, ZenColors.paleBlue),
+      _ => ('Warning', ZenColors.amber, ZenColors.paleAmber),
+    };
     return Container(
+      key: ValueKey('alert-severity-${severity.toLowerCase()}'),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: critical ? ZenColors.paleRed : ZenColors.paleAmber,
+        color: bg,
         borderRadius: BorderRadius.circular(99),
       ),
       child: LText(
-        critical ? 'Critical' : 'Warning',
+        label,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: critical ? ZenColors.red : ZenColors.amber,
+          color: fg,
         ),
       ),
     );

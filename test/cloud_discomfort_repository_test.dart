@@ -89,10 +89,10 @@ void main() {
     expect(requests, isEmpty);
   });
 
-  test('409 DISCOMFORT_TOO_FREQUENT becomes a readable error', () async {
+  test('409 MONITORING_DISCOMFORT_TOO_FREQUENT becomes a readable error', () async {
     respond = (_) => http.Response(
       jsonEncode({
-        'code': 'DISCOMFORT_TOO_FREQUENT',
+        'code': 'MONITORING_DISCOMFORT_TOO_FREQUENT',
         'message': 'too frequent',
       }),
       409,

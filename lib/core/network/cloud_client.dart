@@ -5,7 +5,10 @@ import '../config/app_config.dart';
 class CloudException implements Exception {
   final int statusCode;
   final String message;
-  const CloudException(this.statusCode, this.message);
+
+  /// Codigo del catalogo de errores de Cloud (`{code, message, path, errors[]}`).
+  final String? code;
+  const CloudException(this.statusCode, this.message, {this.code});
   @override
   String toString() => message;
 }
@@ -42,14 +45,16 @@ class CloudClient {
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       var message = 'Error ${response.statusCode} al consultar Cloud API.';
+      String? code;
       try {
         final data = jsonDecode(response.body);
         if (data is Map) {
+          code = data['code'] as String?;
           message =
               '${data['message'] ?? data['detail'] ?? data['error'] ?? message}';
         }
       } catch (_) {}
-      throw CloudException(response.statusCode, message);
+      throw CloudException(response.statusCode, message, code: code);
     }
     if (response.body.trim().isEmpty) return null;
     return _mapKeys(jsonDecode(response.body), _toCamel);

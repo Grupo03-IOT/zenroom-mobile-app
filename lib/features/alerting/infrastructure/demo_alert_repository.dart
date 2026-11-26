@@ -22,7 +22,7 @@ class DemoAlertRepository implements AlertRepository {
         id: 'demo-alert-2',
         roomId: 'focus-1',
         roomCode: 'focus-1',
-        rule: 'discomfort',
+        rule: 'thermal_discomfort',
         severity: 'warning',
         message: 'PPD above 20 %',
         status: AlertStatus.open,

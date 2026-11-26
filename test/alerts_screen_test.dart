@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenroom/app/app_controller.dart';
 import 'package:zenroom/app/screens/admin_screens.dart';
+import 'package:zenroom/app/screens/home_shell.dart';
 import 'package:zenroom/app/screens/member_screens.dart';
 import 'package:zenroom/core/l10n/zenroom_i18n.dart';
 import 'package:zenroom/features/identity/domain/session.dart';
@@ -86,5 +87,34 @@ void main() {
 
     final mine = await controller.discomfort.mine(controller.token);
     expect(mine.single.comment, 'Warm near the window');
+  });
+
+  testWidgets('the Alerts tab shows a badge with the open alert count', (
+    tester,
+  ) async {
+    final controller = AppController();
+    addTearDown(controller.dispose);
+    await controller.signIn('admin@example.com', '', demoRole: UserRole.admin);
+
+    await tester.pumpWidget(
+      _host(
+        controller,
+        Column(
+          children: [
+            const Spacer(),
+            ZenBottomNav(controller: controller),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final badge = tester.widget<Badge>(
+      find.byKey(const ValueKey('nav-badge-alerts')),
+    );
+    expect(badge.isLabelVisible, isTrue);
+    expect(
+      find.descendant(of: find.byWidget(badge), matching: find.text('2')),
+      findsOneWidget,
+    );
   });
 }

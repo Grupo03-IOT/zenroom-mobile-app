@@ -34,12 +34,14 @@ class CloudDiscomfortRepository implements DiscomfortRepository {
       );
       return DiscomfortReport.fromJson(Map<String, dynamic>.from(data as Map));
     } on CloudException catch (error) {
-      if (error.statusCode == 409) {
+      if (error.code == 'MONITORING_DISCOMFORT_TOO_FREQUENT' ||
+          error.statusCode == 409) {
         throw const DiscomfortException(
           'You already reported this in this room less than 10 minutes ago.',
         );
       }
-      if (error.statusCode == 404) {
+      if (error.code == 'MONITORING_ROOM_NOT_FOUND' ||
+          error.statusCode == 404) {
         throw const DiscomfortException('This room no longer exists.');
       }
       rethrow;
