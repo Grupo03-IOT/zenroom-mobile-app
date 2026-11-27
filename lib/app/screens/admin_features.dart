@@ -4,6 +4,7 @@ import '../../core/config/app_config.dart';
 import '../../core/l10n/zenroom_i18n.dart';
 import '../../core/theme/zenroom_theme.dart';
 import '../../features/alerting/domain/threshold.dart' as alerting;
+import '../../features/monitoring/domain/discomfort_report.dart';
 import '../../features/monitoring/domain/room.dart';
 import '../app_controller.dart';
 import '../widgets/zen_widgets.dart';
@@ -811,7 +812,7 @@ class _CredentialsContentState extends State<CredentialsContent> {
           children: [
             const ZenSectionTitle('New credential'),
             const LText(
-              'Create one key per edge node. It only sends readings.',
+              'Create one key per edge node. It sends readings and alerts.',
               style: TextStyle(color: ZenColors.muted),
             ),
             const SizedBox(height: 14),
@@ -1053,31 +1054,37 @@ class _ReportsContentState extends State<ReportsContent> {
         ),
         const SizedBox(height: 14),
         if (tab == 'Discomfort reports') ...[
-          if (!AppConfig.demoMode)
-            const ZenCard(
-              child: LText(
-                'Cloud API does not provide member reports yet.',
-                style: TextStyle(color: ZenColors.muted),
-              ),
-            )
-          else if (widget.controller.demoReports.isEmpty)
-            const ZenCard(child: LText('No demo discomfort reports yet.'))
-          else
-            ...widget.controller.demoReports.map(
-              (report) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: ZenCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const ZenSectionTitle('Member report'),
-                      _pair('Complaint', report),
-                      _pair('Status', 'New'),
-                    ],
-                  ),
+          const ZenSectionTitle('Reports by room'),
+          LiveList<DiscomfortSummary>(
+            key: const ValueKey('discomfort-summary'),
+            empty: 'No discomfort reports yet.',
+            load: () =>
+                widget.controller.discomfort.summary(widget.controller.token),
+            itemBuilder: (context, item, _) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                LText(
+                  _reportRoomName(widget.controller, item.roomId, item.roomCode),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ),
+                const SizedBox(height: 8),
+                _pair('Too noisy', '${item.noise}'),
+                _pair('Too warm', '${item.warm}'),
+                _pair('Too cold', '${item.cold}'),
+                _pair('Total', '${item.total}'),
+              ],
             ),
+          ),
+          const SizedBox(height: 8),
+          const ZenSectionTitle('Latest reports'),
+          LiveList<DiscomfortReport>(
+            key: const ValueKey('discomfort-reports'),
+            empty: 'No discomfort reports yet.',
+            load: () =>
+                widget.controller.discomfort.reports(widget.controller.token),
+            itemBuilder: (context, report, _) =>
+                DiscomfortReportDetails(controller: widget.controller, report: report),
+          ),
         ] else
           ZenCard(
             child: Column(
@@ -1152,67 +1159,132 @@ class _ReportsContentState extends State<ReportsContent> {
 
 
 /// Lista cargada desde Cloud: carga, error y vacio resueltos en un solo sitio.
-class LiveList extends StatefulWidget {
+class LiveList<T> extends StatefulWidget {
   const LiveList({
     super.key,
     required this.load,
     required this.itemBuilder,
     this.empty = 'Nothing to show yet.',
   });
-  final Future<List<Map<String, dynamic>>> Function() load;
-  final Widget Function(
-    BuildContext context,
-    Map<String, dynamic> item,
-    VoidCallback reload,
-  )
+  final Future<List<T>> Function() load;
+  final Widget Function(BuildContext context, T item, VoidCallback reload)
   itemBuilder;
   final String empty;
   @override
-  State<LiveList> createState() => _LiveListState();
+  State<LiveList<T>> createState() => _LiveListState<T>();
 }
 
-class _LiveListState extends State<LiveList> {
-  late Future<List<Map<String, dynamic>>> future = widget.load();
+class _LiveListState<T> extends State<LiveList<T>> {
+  late Future<List<T>> future = widget.load();
   void reload() => setState(() => future = widget.load());
 
   @override
-  Widget build(BuildContext context) =>
-      FutureBuilder<List<Map<String, dynamic>>>(
-        future: future,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return ZenCard(
-              child: LText(
+  Widget build(BuildContext context) => FutureBuilder<List<T>>(
+    future: future,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return ZenCard(
+          key: const ValueKey('live-list-error'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LText(
                 snapshot.error.toString(),
                 style: const TextStyle(color: ZenColors.muted),
               ),
-            );
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final items = snapshot.data!;
-          if (items.isEmpty) {
-            return ZenCard(
-              child: LText(
-                widget.empty,
-                style: const TextStyle(color: ZenColors.muted),
-              ),
-            );
-          }
-          return Column(
-            children: [
-              for (final item in items)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: ZenCard(
-                    child: widget.itemBuilder(context, item, reload),
-                  ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: const ValueKey('live-list-retry'),
+                  onPressed: reload,
+                  child: const LText('Retry'),
                 ),
+              ),
             ],
-          );
-        },
+          ),
+        );
+      }
+      if (!snapshot.hasData) {
+        return const Center(
+          key: ValueKey('live-list-loading'),
+          child: CircularProgressIndicator(),
+        );
+      }
+      final items = snapshot.data!;
+      if (items.isEmpty) {
+        return ZenCard(
+          key: const ValueKey('live-list-empty'),
+          child: LText(
+            widget.empty,
+            style: const TextStyle(color: ZenColors.muted),
+          ),
+        );
+      }
+      return Column(
+        key: const ValueKey('live-list-items'),
+        children: [
+          for (final item in items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: ZenCard(child: widget.itemBuilder(context, item, reload)),
+            ),
+        ],
       );
+    },
+  );
+}
+
+String _reportRoomName(AppController controller, String roomId, String code) {
+  final match = controller.rooms.where((room) => room.id == roomId);
+  if (match.isNotEmpty) return match.first.name;
+  return code.isEmpty ? '—' : code;
+}
+
+String _readingText(BuildContext context, ReportReading? reading) {
+  if (reading == null) return tr(context, 'No recent reading');
+  final spanish = ZenroomI18n.languageOf(context) == AppLanguage.spanish;
+  final occupied = (reading.occupancy ?? 0) >= 50;
+  final parts = [
+    if (reading.noise != null) '${reading.noise!.toStringAsFixed(1)} dB(A)',
+    if (reading.temperature != null)
+      '${reading.temperature!.toStringAsFixed(1)} °C',
+    if (reading.humidity != null) '${reading.humidity!.toStringAsFixed(0)} % ${spanish ? 'HR' : 'RH'}',
+    if (reading.occupancy != null)
+      '${tr(context, occupied ? 'Occupied' : 'Occupancy')} '
+          '${reading.occupancy!.toStringAsFixed(0)} %',
+  ];
+  return parts.isEmpty ? tr(context, 'No recent reading') : parts.join(' · ');
+}
+
+/// Tarjeta de un reporte: sala, motivo, comentario, hora y lectura del momento.
+/// El administrador no ve quien lo envio (PLAN-02 §7, privacidad).
+class DiscomfortReportDetails extends StatelessWidget {
+  const DiscomfortReportDetails({
+    super.key,
+    required this.controller,
+    required this.report,
+  });
+  final AppController controller;
+  final DiscomfortReport report;
+  @override
+  Widget build(BuildContext context) => Column(
+    key: ValueKey('discomfort-report-${report.id}'),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      LText(
+        _reportRoomName(controller, report.roomId, report.roomCode),
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: 8),
+      _pair('Reason', report.category.label),
+      _pair('Sent', formatLocalDateTime(report.createdAt)),
+      _pair('Reading at that moment', _readingText(context, report.reading)),
+      if (report.comment != null) ...[
+        const SizedBox(height: 6),
+        LText(report.comment!, style: const TextStyle(fontSize: 13)),
+      ],
+    ],
+  );
 }
 
 String _when(dynamic value) =>

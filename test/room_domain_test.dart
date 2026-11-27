@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zenroom/features/monitoring/domain/room.dart';
 
 void main() {
+  _reasonTests();
   test('Cloud room JSON maps snake-normalized keys and comfort status', () {
     final room = Room.fromJson({
       'id': 'room-1',
@@ -55,5 +56,23 @@ void main() {
     expect(room.latest?.forecast?.probability, 0.91);
     expect(room.latest?.forecast?.horizonMin, 15);
     expect(room.status, RoomStatus.optimal);
+  });
+}
+
+void _reasonTests() {
+  Room room(Map<String, dynamic> latest) => Room.fromJson({
+    'id': 'r', 'code': 'sala-03', 'displayName': 'Sala 03', 'floor': '1',
+    'classified': true, 'latest': latest,
+  });
+
+  test('attention reason follows the metric, not a fixed noise sentence', () {
+    final thermal = room({'laeq': 48, 'tempC': 29.4, 'ppd': 45});
+    expect(thermal.status, RoomStatus.bad);
+    expect(thermal.attentionReason, 'Thermal discomfort (PPD above 20 %)');
+    final noisy = room({'laeq': 65, 'tempC': 22, 'ppd': 5});
+    expect(noisy.attentionReason, 'Noise above 60 dB(A)');
+    final warm = room({'laeq': 40, 'tempC': 26, 'ppd': 10});
+    expect(warm.attentionReason, 'Temperature above 25 °C');
+    expect(room({'laeq': 40, 'tempC': 22, 'ppd': 5}).attentionReason, isNull);
   });
 }

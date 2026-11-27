@@ -5,14 +5,40 @@ import '../config/app_config.dart';
 class CloudException implements Exception {
   final int statusCode;
   final String message;
-  const CloudException(this.statusCode, this.message);
+
+  /// Codigo del catalogo de errores de Cloud (`{code, message, path, errors[]}`).
+  final String? code;
+  const CloudException(this.statusCode, this.message, {this.code});
   @override
   String toString() => message;
 }
 
+const accountDisabledCode = 'IAM_ACCOUNT_DISABLED';
+const invalidCredentialsCode = 'IAM_INVALID_CREDENTIALS';
+const invalidCredentialsMessage = 'Correo o contraseña incorrectos.';
+const accountDisabledMessage =
+    'Esta cuenta está desactivada. Contacta a un administrador.';
+
+/// Mensaje de acceso para un error del login: credenciales (400/401) o cuenta
+/// desactivada. Devuelve null si el error no es de ese tipo.
+String? loginErrorMessage(CloudException error) {
+  if (error.code == accountDisabledCode) return accountDisabledMessage;
+  if (error.code == invalidCredentialsCode ||
+      error.statusCode == 400 ||
+      error.statusCode == 401) {
+    return invalidCredentialsMessage;
+  }
+  return null;
+}
+
 class CloudClient {
-  CloudClient({http.Client? httpClient}) : _http = httpClient ?? http.Client();
+  CloudClient({http.Client? httpClient, this.onAccountDisabled})
+    : _http = httpClient ?? http.Client();
   final http.Client _http;
+
+  /// Se invoca cuando una llamada autenticada responde 401 IAM_ACCOUNT_DISABLED.
+  /// El login no envia token, por lo que su 401 nunca dispara este callback.
+  void Function()? onAccountDisabled;
 
   Future<dynamic> request(
     String method,
@@ -42,14 +68,22 @@ class CloudClient {
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       var message = 'Error ${response.statusCode} al consultar Cloud API.';
+      String? code;
       try {
         final data = jsonDecode(response.body);
         if (data is Map) {
+          code = data['code'] as String?;
           message =
               '${data['message'] ?? data['detail'] ?? data['error'] ?? message}';
         }
       } catch (_) {}
-      throw CloudException(response.statusCode, message);
+      if (response.statusCode == 401 &&
+          code == accountDisabledCode &&
+          token != null &&
+          token.isNotEmpty) {
+        onAccountDisabled?.call();
+      }
+      throw CloudException(response.statusCode, message, code: code);
     }
     if (response.body.trim().isEmpty) return null;
     return _mapKeys(jsonDecode(response.body), _toCamel);

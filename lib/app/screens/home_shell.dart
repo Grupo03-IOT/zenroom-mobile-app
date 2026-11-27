@@ -29,11 +29,7 @@ class HomeShell extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 430),
-            child: Column(
-              children: [
-                Expanded(child: body),
-              ],
-            ),
+            child: Column(children: [Expanded(child: body)]),
           ),
         ),
       ),
@@ -93,17 +89,25 @@ class ZenBottomNav extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                icons[index] == 'more'
-                                    ? Icon(
-                                        Icons.menu,
-                                        size: 23,
-                                        color: itemColor,
-                                      )
-                                    : ZenIcon(
-                                        icons[index],
-                                        size: 23,
-                                        color: itemColor,
-                                      ),
+                                Badge(
+                                  key: ValueKey('nav-badge-${icons[index]}'),
+                                  isLabelVisible:
+                                      icons[index] == 'alerts' &&
+                                      (controller.openAlerts ?? 0) > 0,
+                                  label: Text('${controller.openAlerts ?? 0}'),
+                                  backgroundColor: ZenColors.red,
+                                  child: icons[index] == 'more'
+                                      ? Icon(
+                                          Icons.menu,
+                                          size: 23,
+                                          color: itemColor,
+                                        )
+                                      : ZenIcon(
+                                          icons[index],
+                                          size: 23,
+                                          color: itemColor,
+                                        ),
+                                ),
                                 const SizedBox(height: 5),
                                 LText(
                                   labels[index],
