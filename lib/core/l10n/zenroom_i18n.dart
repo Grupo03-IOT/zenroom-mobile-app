@@ -5,6 +5,11 @@ enum AppLanguage { english, spanish }
 
 extension AppLanguageCode on AppLanguage {
   String get code => this == AppLanguage.spanish ? 'es' : 'en';
+
+  /// en_US (por defecto) o es_419.
+  Locale get locale => this == AppLanguage.spanish
+      ? const Locale('es', '419')
+      : const Locale('en', 'US');
 }
 
 class ZenroomI18n extends InheritedWidget {
@@ -26,6 +31,12 @@ String tr(BuildContext context, String source) =>
 
 String translate(AppLanguage language, String source) {
   if (language == AppLanguage.english) {
+    final failed = RegExp(
+      r'^Error (\d+) al consultar Cloud API\.$',
+    ).firstMatch(source);
+    if (failed != null) {
+      return 'Error ${failed.group(1)} while querying Cloud API.';
+    }
     return _esToEn[source] ?? source;
   }
   final exact = _enToEs[source];
@@ -58,6 +69,8 @@ String translate(AppLanguage language, String source) {
 }
 
 const _esToEn = <String, String>{
+  'No se pudo conectar con Cloud API.': 'Could not connect to Cloud API.',
+  'Token inválido.': 'Invalid token.',
   invalidCredentialsMessage: 'Invalid email or password.',
   accountDisabledMessage:
       'This account is deactivated. Contact an administrator.',
