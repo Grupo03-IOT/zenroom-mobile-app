@@ -13,9 +13,32 @@ class CloudException implements Exception {
   String toString() => message;
 }
 
+const accountDisabledCode = 'IAM_ACCOUNT_DISABLED';
+const invalidCredentialsCode = 'IAM_INVALID_CREDENTIALS';
+const invalidCredentialsMessage = 'Correo o contraseña incorrectos.';
+const accountDisabledMessage =
+    'Esta cuenta está desactivada. Contacta a un administrador.';
+
+/// Mensaje de acceso para un error del login: credenciales (400/401) o cuenta
+/// desactivada. Devuelve null si el error no es de ese tipo.
+String? loginErrorMessage(CloudException error) {
+  if (error.code == accountDisabledCode) return accountDisabledMessage;
+  if (error.code == invalidCredentialsCode ||
+      error.statusCode == 400 ||
+      error.statusCode == 401) {
+    return invalidCredentialsMessage;
+  }
+  return null;
+}
+
 class CloudClient {
-  CloudClient({http.Client? httpClient}) : _http = httpClient ?? http.Client();
+  CloudClient({http.Client? httpClient, this.onAccountDisabled})
+    : _http = httpClient ?? http.Client();
   final http.Client _http;
+
+  /// Se invoca cuando una llamada autenticada responde 401 IAM_ACCOUNT_DISABLED.
+  /// El login no envia token, por lo que su 401 nunca dispara este callback.
+  void Function()? onAccountDisabled;
 
   Future<dynamic> request(
     String method,
@@ -54,6 +77,12 @@ class CloudClient {
               '${data['message'] ?? data['detail'] ?? data['error'] ?? message}';
         }
       } catch (_) {}
+      if (response.statusCode == 401 &&
+          code == accountDisabledCode &&
+          token != null &&
+          token.isNotEmpty) {
+        onAccountDisabled?.call();
+      }
       throw CloudException(response.statusCode, message, code: code);
     }
     if (response.body.trim().isEmpty) return null;

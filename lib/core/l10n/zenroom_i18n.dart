@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import '../network/cloud_client.dart';
 
 enum AppLanguage { english, spanish }
 
@@ -57,6 +58,9 @@ String translate(AppLanguage language, String source) {
 }
 
 const _esToEn = <String, String>{
+  invalidCredentialsMessage: 'Invalid email or password.',
+  accountDisabledMessage:
+      'This account is deactivated. Contact an administrator.',
   'Ingresa tu correo y contraseña.': 'Enter your email and password.',
   'Completa los campos, usa 8 caracteres y acepta los términos.':
       'Complete the fields, use at least 8 characters and accept the terms.',

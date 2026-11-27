@@ -21,7 +21,7 @@ import '../features/monitoring/infrastructure/demo_monitoring_repository.dart';
 
 class AppController extends ChangeNotifier {
   AppController({AlertRepository? alerts, DiscomfortRepository? discomfort}) {
-    final client = CloudClient();
+    final client = CloudClient(onAccountDisabled: _onAccountDisabled);
     identity = CloudIdentityRepository(client);
     monitoring = AppConfig.demoMode
         ? DemoMonitoringRepository()
@@ -49,6 +49,15 @@ class AppController extends ChangeNotifier {
   late final DiscomfortRepository discomfort;
 
   Session? session;
+
+  /// Aviso para la pantalla de acceso tras cerrar la sesion (cuenta desactivada).
+  String? authNotice;
+
+  void _onAccountDisabled() {
+    if (session == null) return;
+    authNotice = accountDisabledMessage;
+    signOut();
+  }
   List<Room> rooms = [];
   List<Site> sites = [];
   Site? selectedSite;
@@ -95,6 +104,7 @@ class AppController extends ChangeNotifier {
     String password, {
     UserRole demoRole = UserRole.member,
   }) async {
+    authNotice = null;
     if (AppConfig.demoMode) {
       session = Session(
         token: 'demo',
@@ -133,7 +143,12 @@ class AppController extends ChangeNotifier {
       }
     } catch (error) {
       loadError = error.toString();
-      if (error is CloudException && error.statusCode == 401) signOut();
+      if (error is CloudException && error.statusCode == 401) {
+        if (error.code == accountDisabledCode) {
+          authNotice = accountDisabledMessage;
+        }
+        signOut();
+      }
     } finally {
       loading = false;
       notifyListeners();
