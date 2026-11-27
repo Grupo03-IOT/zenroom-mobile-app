@@ -25,6 +25,18 @@ class _AuthScreenState extends State<AuthScreen> {
   UserRole demoRole = UserRole.member;
 
   @override
+  void initState() {
+    super.initState();
+    final notice = widget.controller.authNotice;
+    if (notice != null) {
+      widget.controller.authNotice = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) showNotice(context, notice);
+      });
+    }
+  }
+
+  @override
   void dispose() {
     email.dispose();
     password.dispose();

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/l10n/zenroom_i18n.dart';
 import '../../core/theme/zenroom_theme.dart';
+import '../../features/monitoring/domain/discomfort_report.dart';
 import '../../features/monitoring/domain/room.dart';
 import '../app_controller.dart';
 import '../widgets/language_menu_tile.dart';
 import '../widgets/zen_widgets.dart';
+import 'admin_features.dart';
 import 'home_shell.dart';
 import 'legal_screen.dart';
 
@@ -491,8 +493,28 @@ class ReportScreen extends StatefulWidget {
 
 class _ReportScreenState extends State<ReportScreen> {
   String? roomId;
-  String problem = 'Too noisy';
+  DiscomfortCategory problem = DiscomfortCategory.noise;
+  bool busy = false;
   final comment = TextEditingController();
+
+  Future<void> _send(String roomId) async {
+    setState(() => busy = true);
+    try {
+      await widget.controller.fileReport(
+        roomId: roomId,
+        category: problem,
+        comment: comment.text,
+      );
+      if (!mounted) return;
+      comment.clear();
+      showNotice(context, 'Report sent. Thank you.');
+      widget.controller.selectTab(0);
+    } catch (error) {
+      if (mounted) showNotice(context, error.toString());
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
   @override
   void dispose() {
     comment.dispose();
@@ -598,27 +620,28 @@ class _ReportScreenState extends State<ReportScreen> {
               ),
               const SizedBox(height: 18),
               const ZenSectionTitle('What is the problem?'),
-              ...['Too noisy', 'Too warm', 'Too cold'].map(
-                (name) => Padding(
+              ...DiscomfortCategory.values.map(
+                (category) => Padding(
+                  key: ValueKey('report-category-${category.code}'),
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Semantics(
                     button: true,
-                    selected: problem == name,
-                    label: name,
+                    selected: problem == category,
+                    label: tr(context, category.label),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
-                      onTap: () => setState(() => problem = name),
+                      onTap: () => setState(() => problem = category),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 13,
                         ),
                         decoration: BoxDecoration(
-                          color: problem == name
+                          color: problem == category
                               ? const Color(0xFFE8F3FA)
                               : Colors.white,
                           border: Border.all(
-                            color: problem == name
+                            color: problem == category
                                 ? ZenColors.blue
                                 : ZenColors.border,
                           ),
@@ -627,22 +650,22 @@ class _ReportScreenState extends State<ReportScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              problem == name
+                              problem == category
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
-                              color: problem == name
+                              color: problem == category
                                   ? ZenColors.blue
                                   : ZenColors.border,
                               size: 20,
                             ),
                             const SizedBox(width: 15),
                             ZenIcon(
-                              name == 'Too noisy' ? 'noise' : 'temp',
+                              category == DiscomfortCategory.noise ? 'noise' : 'temp',
                               size: 18,
                             ),
                             const SizedBox(width: 12),
                             LText(
-                              name,
+                              category.label,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -656,27 +679,22 @@ class _ReportScreenState extends State<ReportScreen> {
               ),
               const FormLabel('Comment (optional)'),
               TextField(
+                key: const ValueKey('report-comment-input'),
                 controller: comment,
                 maxLines: 2,
+                maxLength: DiscomfortComment.maxLength,
                 decoration: InputDecoration(
                   hintText: tr(context, 'Add details'),
                 ),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
+                key: const ValueKey('report-send'),
                 icon: const Icon(Icons.campaign_outlined, size: 18),
-                onPressed: selected == null
+                onPressed: selected == null || busy
                     ? null
-                    : () {
-                        if (!AppConfig.demoMode) {
-                          showUnavailable(context, 'Discomfort reports');
-                          return;
-                        }
-                        widget.controller.demoReports.add(problem);
-                        showNotice(context, 'Demo report saved locally.');
-                        widget.controller.selectTab(0);
-                      },
-                label: const LText('Send report'),
+                    : () => _send(selected),
+                label: LText(busy ? 'Sending…' : 'Send report'),
               ),
             ],
           ),
@@ -775,15 +793,13 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     'report',
                     'My reports',
-                    '${controller.demoReports.length} sent',
-                    () => AppConfig.demoMode
-                        ? showNotice(
-                            context,
-                            controller.demoReports.isEmpty
-                                ? 'No demo reports yet.'
-                                : controller.demoReports.join(', '),
-                          )
-                        : showUnavailable(context, 'Report history'),
+                    '${controller.myReportCount ?? 0} sent',
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MyReportsScreen(controller: controller),
+                      ),
+                    ),
                   ),
                   _menu(
                     context,
@@ -852,5 +868,41 @@ class ProfileScreen extends StatelessWidget {
     ),
     onTap: onTap,
     shape: const Border(bottom: BorderSide(color: ZenColors.border)),
+  );
+}
+
+/// Reportes enviados por el miembro autenticado (`GET /discomfort-reports/mine`).
+class MyReportsScreen extends StatelessWidget {
+  const MyReportsScreen({super.key, required this.controller});
+  final AppController controller;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: ListView(
+            key: const ValueKey('my-reports'),
+            children: [
+              ScreenHeader(
+                title: 'My reports',
+                back: () => Navigator.pop(context),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: LiveList<DiscomfortReport>(
+                  empty: 'You have not sent any report yet.',
+                  load: () => controller.discomfort.mine(controller.token),
+                  itemBuilder: (context, report, _) => DiscomfortReportDetails(
+                    controller: controller,
+                    report: report,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
   );
 }
