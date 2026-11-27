@@ -202,6 +202,11 @@ const _enToEs = <String, String>{
   'need attention': 'requieren atención',
   'Conditions are moderate': 'Las condiciones son moderadas',
   'Noise above 60 dB(A)': 'Ruido superior a 60 dB(A)',
+  'Noise above 50 dB(A)': 'Ruido superior a 50 dB(A)',
+  'Thermal discomfort (PPD above 20 %)':
+      'Incomodidad térmica (PPD superior a 20 %)',
+  'Temperature above 25 °C': 'Temperatura superior a 25 °C',
+  'Occupancy': 'Ocupación',
   'Opened': 'Abierta',
   'Duration': 'Duración',
   'Not yet': 'Todavía no',
@@ -367,8 +372,7 @@ const _enToEs = <String, String>{
       'Tendencias por sala y su relación con el clima exterior.',
   'Warning must be below critical and duration must be positive.':
       'El umbral de advertencia debe ser menor que el crítico y la duración debe ser positiva.',
-  'No open alerts. All rooms are within their thresholds.':
-      'No hay alertas abiertas. Todas las salas están dentro de sus umbrales.',
+  'No open alerts.': 'No hay alertas abiertas.',
   'No acknowledged alerts waiting to close.':
       'No hay alertas atendidas pendientes de cierre.',
   'No closed alerts yet.':

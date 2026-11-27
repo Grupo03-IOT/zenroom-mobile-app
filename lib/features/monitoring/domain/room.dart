@@ -1,3 +1,4 @@
+import '../../../core/time/utc_time.dart';
 enum RoomStatus { optimal, moderate, bad, noData }
 
 class TemperatureForecast {
@@ -21,7 +22,7 @@ class TemperatureForecast {
         horizonMin: (json['horizonMin'] as num).toInt(),
         temperatureLimitC: (json['temperatureLimitC'] as num).toDouble(),
         modelVersion: json['modelVersion'] as String?,
-        generatedAt: DateTime.tryParse('${json['generatedAt'] ?? ''}'),
+        generatedAt: parseUtc(json['generatedAt']),
       );
 }
 
@@ -46,7 +47,7 @@ class LatestReading {
   final bool complete;
 
   factory LatestReading.fromJson(Map<String, dynamic> json) => LatestReading(
-    timestamp: DateTime.tryParse('${json['ts'] ?? ''}'),
+    timestamp: parseUtc(json['ts']),
     noise: (json['laeq'] as num?)?.toDouble(),
     temperature: (json['tempC'] as num?)?.toDouble(),
     humidity: (json['rhPct'] as num?)?.toDouble(),
@@ -90,6 +91,18 @@ class Room {
       return RoomStatus.moderate;
     }
     return RoomStatus.optimal;
+  }
+
+  /// Motivo (clave traducible) por el que la sala requiere atencion, segun la
+  /// metrica que realmente supera el umbral; null si no requiere atencion.
+  String? get attentionReason {
+    final reading = latest;
+    if (reading == null) return null;
+    if ((reading.noise ?? 0) >= 60) return 'Noise above 60 dB(A)';
+    if ((reading.ppd ?? 0) >= 20) return 'Thermal discomfort (PPD above 20 %)';
+    if ((reading.noise ?? 0) >= 50) return 'Noise above 50 dB(A)';
+    if ((reading.temperature ?? 0) >= 25) return 'Temperature above 25 °C';
+    return status == RoomStatus.optimal ? null : 'Conditions are moderate';
   }
 
   factory Room.fromJson(Map<String, dynamic> json) => Room(
@@ -167,7 +180,7 @@ class Reading {
     final climate = json['climate'] as Map?;
     final occupied = json['occupancy'] as Map?;
     return Reading(
-      timestamp: DateTime.tryParse('${json['ts'] ?? ''}') ?? DateTime.now(),
+      timestamp: parseUtc(json['ts']) ?? DateTime.now(),
       noise: (acoustic?['laeq'] as num?)?.toDouble(),
       temperature: (climate?['tempC'] as num?)?.toDouble(),
       humidity: (climate?['rhPct'] as num?)?.toDouble(),

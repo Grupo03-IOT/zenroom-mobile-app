@@ -1,3 +1,5 @@
+import '../../../core/time/utc_time.dart';
+
 /// Alerta de confort abierta por el Edge y guardada en Cloud (US20, US21, US22, US36, US37).
 enum AlertStatus {
   open('OPEN'),
@@ -118,6 +120,5 @@ class Alert {
     correctiveAction: correctiveAction ?? this.correctiveAction,
   );
 
-  static DateTime? _date(dynamic value) =>
-      value == null ? null : DateTime.tryParse('$value');
+  static DateTime? _date(dynamic value) => parseUtc(value);
 }

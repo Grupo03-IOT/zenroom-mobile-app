@@ -117,9 +117,8 @@ class AdminOverviewScreen extends StatelessWidget {
                                   ),
                                 ),
                                 subtitle: LText(
-                                  room.status == RoomStatus.bad
-                                      ? 'Noise above 60 dB(A)'
-                                      : 'Conditions are moderate',
+                                  room.attentionReason ??
+                                      'Conditions are moderate',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: ZenColors.muted,
@@ -243,7 +242,7 @@ class _AdminAlertsScreenState extends State<AdminAlertsScreen> {
   };
 
   String get _emptyText => switch (filter) {
-    AlertStatus.open => 'No open alerts. All rooms are within their thresholds.',
+    AlertStatus.open => 'No open alerts.',
     AlertStatus.acknowledged => 'No acknowledged alerts waiting to close.',
     AlertStatus.closed => 'No closed alerts yet.',
   };
@@ -461,6 +460,12 @@ class _AcknowledgeDialog extends StatefulWidget {
   State<_AcknowledgeDialog> createState() => _AcknowledgeDialogState();
 }
 
+OutlineInputBorder _actionBorder(Color color, {double width = 1}) =>
+    OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(6)),
+      borderSide: BorderSide(color: color, width: width),
+    );
+
 class _AcknowledgeDialogState extends State<_AcknowledgeDialog> {
   final text = TextEditingController();
   String? error;
@@ -501,7 +506,11 @@ class _AcknowledgeDialogState extends State<_AcknowledgeDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     title: const LText('Acknowledge alert'),
-    content: SingleChildScrollView(
+    scrollable: true,
+    content: Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,10 +524,18 @@ class _AcknowledgeDialogState extends State<_AcknowledgeDialog> {
             key: const ValueKey('acknowledge-action-input'),
             controller: text,
             autofocus: true,
-            minLines: 2,
+            minLines: 3,
             maxLines: 4,
             maxLength: CorrectiveAction.maxLength,
+            scrollPadding: const EdgeInsets.all(48),
             decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: _actionBorder(ZenColors.muted),
+              enabledBorder: _actionBorder(ZenColors.muted),
+              focusedBorder: _actionBorder(ZenColors.blue, width: 1.5),
+              errorBorder: _actionBorder(ZenColors.red),
+              focusedErrorBorder: _actionBorder(ZenColors.red, width: 1.5),
               hintText: tr(context, 'Describe what was done'),
               errorText: error == null ? null : tr(context, error!),
               errorMaxLines: 3,

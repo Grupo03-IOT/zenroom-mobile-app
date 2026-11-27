@@ -1,3 +1,4 @@
+import '../../../core/time/utc_time.dart';
 /// Reporte de incomodidad de un miembro con la lectura de la sala en ese momento (US27, US28).
 enum DiscomfortCategory {
   noise('NOISE', 'Too noisy'),
@@ -44,7 +45,7 @@ class ReportReading {
   final double? occupancy;
 
   factory ReportReading.fromJson(Map<String, dynamic> json) => ReportReading(
-    timestamp: DateTime.tryParse('${json['ts'] ?? ''}'),
+    timestamp: parseUtc(json['ts']),
     noise: (json['laeq'] as num?)?.toDouble(),
     temperature: (json['tempC'] as num?)?.toDouble(),
     humidity: (json['rhPct'] as num?)?.toDouble(),
@@ -79,7 +80,7 @@ class DiscomfortReport {
         comment: (json['comment'] as String?)?.trim().isEmpty ?? true
             ? null
             : json['comment'] as String,
-        createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}'),
+        createdAt: parseUtc(json['createdAt']),
         reading: json['reading'] is Map
             ? ReportReading.fromJson(
                 Map<String, dynamic>.from(json['reading'] as Map),

@@ -117,4 +117,28 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('empty Active tab only says there are no open alerts', (
+    tester,
+  ) async {
+    final controller = AppController();
+    addTearDown(controller.dispose);
+    await controller.signIn('admin@example.com', '', demoRole: UserRole.admin);
+    await tester.pumpWidget(
+      _host(controller, AdminAlertsScreen(controller: controller)),
+    );
+    await tester.pumpAndSettle();
+    for (final id in ['demo-alert-1', 'demo-alert-2']) {
+      await tester.tap(find.byKey(ValueKey('alert-acknowledge-$id')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('acknowledge-action-input')),
+        'Corrective action done',
+      );
+      await tester.tap(find.byKey(const ValueKey('acknowledge-submit')));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('No open alerts.'), findsOneWidget);
+    expect(find.textContaining('thresholds'), findsNothing);
+  });
 }

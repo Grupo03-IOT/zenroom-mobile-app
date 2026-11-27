@@ -1240,17 +1240,20 @@ String _reportRoomName(AppController controller, String roomId, String code) {
   return code.isEmpty ? '—' : code;
 }
 
-String _readingText(ReportReading? reading) {
-  if (reading == null) return 'No recent reading';
+String _readingText(BuildContext context, ReportReading? reading) {
+  if (reading == null) return tr(context, 'No recent reading');
+  final spanish = ZenroomI18n.languageOf(context) == AppLanguage.spanish;
+  final occupied = (reading.occupancy ?? 0) >= 50;
   final parts = [
     if (reading.noise != null) '${reading.noise!.toStringAsFixed(1)} dB(A)',
     if (reading.temperature != null)
       '${reading.temperature!.toStringAsFixed(1)} °C',
-    if (reading.humidity != null) '${reading.humidity!.toStringAsFixed(0)} % RH',
+    if (reading.humidity != null) '${reading.humidity!.toStringAsFixed(0)} % ${spanish ? 'HR' : 'RH'}',
     if (reading.occupancy != null)
-      '${reading.occupancy!.toStringAsFixed(0)} % occ.',
+      '${tr(context, occupied ? 'Occupied' : 'Occupancy')} '
+          '${reading.occupancy!.toStringAsFixed(0)} %',
   ];
-  return parts.isEmpty ? 'No recent reading' : parts.join(' · ');
+  return parts.isEmpty ? tr(context, 'No recent reading') : parts.join(' · ');
 }
 
 /// Tarjeta de un reporte: sala, motivo, comentario, hora y lectura del momento.
@@ -1275,7 +1278,7 @@ class DiscomfortReportDetails extends StatelessWidget {
       const SizedBox(height: 8),
       _pair('Reason', report.category.label),
       _pair('Sent', formatLocalDateTime(report.createdAt)),
-      _pair('Reading at that moment', _readingText(report.reading)),
+      _pair('Reading at that moment', _readingText(context, report.reading)),
       if (report.comment != null) ...[
         const SizedBox(height: 6),
         LText(report.comment!, style: const TextStyle(fontSize: 13)),
