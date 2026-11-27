@@ -55,10 +55,12 @@ class CloudDiscomfortRepository implements DiscomfortRepository {
     DiscomfortCategory? category,
     DateTime? from,
     DateTime? to,
+    bool discrepancyOnly = false,
   }) async => _reports(
     _path(_base, {
       if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
       if (category != null) 'category': category.code,
+      if (discrepancyOnly) 'discrepancy': 'true',
       ..._range(from, to),
     }),
     token,

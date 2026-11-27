@@ -62,6 +62,8 @@ class DiscomfortReport {
     this.comment,
     this.createdAt,
     this.reading,
+    this.discrepancy = false,
+    this.discrepancyReason,
   });
   final String id;
   final String roomId;
@@ -70,6 +72,12 @@ class DiscomfortReport {
   final String? comment;
   final DateTime? createdAt;
   final ReportReading? reading;
+
+  /// La lectura del momento estaba dentro del umbral de la sala (TS13, US27).
+  final bool discrepancy;
+
+  /// `NOISE_WITHIN_RANGE` o `TEMPERATURE_WITHIN_RANGE`; null si no hay discrepancia.
+  final String? discrepancyReason;
 
   factory DiscomfortReport.fromJson(Map<String, dynamic> json) =>
       DiscomfortReport(
@@ -86,6 +94,8 @@ class DiscomfortReport {
                 Map<String, dynamic>.from(json['reading'] as Map),
               )
             : null,
+        discrepancy: json['discrepancy'] == true,
+        discrepancyReason: json['discrepancyReason'] as String?,
       );
 }
 
@@ -98,6 +108,7 @@ class DiscomfortSummary {
     required this.warm,
     required this.cold,
     required this.total,
+    this.discrepancies = 0,
   });
   final String roomId;
   final String roomCode;
@@ -105,6 +116,7 @@ class DiscomfortSummary {
   final int warm;
   final int cold;
   final int total;
+  final int discrepancies;
 
   factory DiscomfortSummary.fromJson(Map<String, dynamic> json) =>
       DiscomfortSummary(
@@ -114,6 +126,7 @@ class DiscomfortSummary {
         warm: (json['warm'] as num?)?.toInt() ?? 0,
         cold: (json['cold'] as num?)?.toInt() ?? 0,
         total: (json['total'] as num?)?.toInt() ?? 0,
+        discrepancies: (json['discrepancies'] as num?)?.toInt() ?? 0,
       );
 }
 
@@ -131,6 +144,7 @@ abstract interface class DiscomfortRepository {
     DiscomfortCategory? category,
     DateTime? from,
     DateTime? to,
+    bool discrepancyOnly = false,
   });
   Future<List<DiscomfortReport>> mine(String token);
   Future<List<DiscomfortSummary>> summary(

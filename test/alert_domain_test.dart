@@ -34,6 +34,17 @@ void main() {
     expect(alert.value, 66.4);
     expect(alert.durationAt(DateTime.utc(2030)), const Duration(minutes: 15));
     expect(alert.correctiveAction, 'Asked for silence');
+    expect(alert.acknowledgedByName, isNull);
+  });
+
+  test('parses the acknowledger full name', () {
+    final alert = Alert.fromJson({
+      'id': 'a2',
+      'status': 'ACKNOWLEDGED',
+      'acknowledgedByName': 'Ana Torres',
+    });
+    expect(alert.acknowledgedByName, 'Ana Torres');
+    expect(alert.copyWith(status: AlertStatus.closed).acknowledgedByName, 'Ana Torres');
   });
 
   test('unknown status falls back to OPEN', () {

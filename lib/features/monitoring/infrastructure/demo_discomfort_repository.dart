@@ -56,11 +56,13 @@ class DemoDiscomfortRepository implements DiscomfortRepository {
     DiscomfortCategory? category,
     DateTime? from,
     DateTime? to,
+    bool discrepancyOnly = false,
   }) async => _items
       .where(
         (report) =>
             (roomId == null || report.roomId == roomId) &&
-            (category == null || report.category == category),
+            (category == null || report.category == category) &&
+            (!discrepancyOnly || report.discrepancy),
       )
       .toList();
 
@@ -88,6 +90,7 @@ class DemoDiscomfortRepository implements DiscomfortRepository {
             warm: count(entry.value, DiscomfortCategory.warm),
             cold: count(entry.value, DiscomfortCategory.cold),
             total: entry.value.length,
+            discrepancies: entry.value.where((r) => r.discrepancy).length,
           ),
         )
         .toList();
