@@ -213,6 +213,16 @@ const _enToEs = <String, String>{
   'Threshold 60': 'Umbral 60',
   'Max 67': 'Máx. 67',
   'Corrective action': 'Acción correctiva',
+  'Acknowledged by': 'Atendida por',
+  'Discrepancies': 'Discrepancias',
+  'Only discrepancies': 'Solo discrepancias',
+  'No reports with discrepancies.': 'No hay reportes con discrepancias.',
+  'Discrepancy: the temperature was within the comfort range':
+      'Discrepancia: la temperatura estaba dentro del rango de confort',
+  'Discrepancy: the noise was within the threshold':
+      'Discrepancia: el ruido estaba dentro del umbral',
+  'Discrepancy: the reading was within the threshold':
+      'Discrepancia: la lectura estaba dentro del umbral',
   'Describe what was done': 'Describe lo que se hizo',
   'Acknowledge and save': 'Atender y guardar',
   'Sites & rooms': 'Sedes y salas',
