@@ -86,6 +86,7 @@ const _esToEn = <String, String>{
 };
 
 const _enToEs = <String, String>{
+  'Contents': 'Contenido',
   'Welcome back': 'Bienvenido de nuevo',
   'Your spaces and comfort data are waiting.':
       'Tus espacios y datos de confort te esperan.',
