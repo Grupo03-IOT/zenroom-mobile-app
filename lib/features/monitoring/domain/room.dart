@@ -83,6 +83,24 @@ class Room {
   final LatestReading? latest;
 
   bool get isFree => (latest?.occupancy ?? 0) < 50;
+
+  /// Readings older than this are not considered current.
+  static const Duration staleAfter = Duration(minutes: 5);
+
+  /// People in the room: [capacity] (1 when null) if occupied, 0 if free.
+  /// Null when there is no reading or it is stale (older than [staleAfter]).
+  int? occupancyPeople(DateTime now) {
+    final ts = latest?.timestamp;
+    if (ts == null || now.difference(ts) > staleAfter) return null;
+    return isFree ? 0 : (capacity ?? 1);
+  }
+
+  /// Translatable label for the occupancy in people.
+  String occupancyPeopleLabel(DateTime now) {
+    final people = occupancyPeople(now);
+    if (people == null) return 'Occupancy not available';
+    return people == 1 ? '1 person' : '$people people';
+  }
   RoomStatus get status {
     if (latest == null) return RoomStatus.noData;
     if ((latest!.noise ?? 0) >= 60 || (latest!.ppd ?? 0) >= 20)
