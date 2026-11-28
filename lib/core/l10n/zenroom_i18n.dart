@@ -50,6 +50,8 @@ String translate(AppLanguage language, String source) {
   if (ofRooms != null) return 'de ${ofRooms.group(1)}';
   final updated = RegExp(r'^Updated (\d+) min ago$').firstMatch(source);
   if (updated != null) return 'Actualizado hace ${updated.group(1)} min';
+  final people = RegExp(r'^(\d+) people$').firstMatch(source);
+  if (people != null) return '${people.group(1)} personas';
   final minutes = RegExp(r'^(\d+) minutes detected$').firstMatch(source);
   if (minutes != null) return '${minutes.group(1)} min detectados';
   final classify = RegExp(r'^Classify (.+)$').firstMatch(source);
@@ -401,6 +403,9 @@ const _enToEs = <String, String>{
       'No hay alertas atendidas pendientes de cierre.',
   'No closed alerts yet.':
       'Aún no hay alertas cerradas.',
+  'Device offline': 'Dispositivo sin conexión',
+  'Occupancy not available': 'Ocupación no disponible',
+  '1 person': '1 persona',
   'Sustained noise':
       'Ruido sostenido',
   'Thermal discomfort (PPD)':

@@ -363,6 +363,29 @@ class RoomDetailScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      ZenCard(
+                        child: Row(
+                          children: [
+                            const LText(
+                              'Occupancy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ZenColors.muted,
+                              ),
+                            ),
+                            const Spacer(),
+                            LText(
+                              room.occupancyPeopleLabel(now),
+                              key: const ValueKey('room-occupancy-people'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: ZenColors.navy,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: profile,
