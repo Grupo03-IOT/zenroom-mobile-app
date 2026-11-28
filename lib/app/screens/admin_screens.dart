@@ -317,6 +317,7 @@ String _roomName(AppController controller, Alert alert) {
 String _ruleLabel(Alert alert) => switch (alert.rule) {
   'sustained_noise' => 'Sustained noise',
   'thermal_discomfort' => 'Thermal discomfort (PPD)',
+  'device_offline' => 'Device offline',
   _ => alert.rule,
 };
 
