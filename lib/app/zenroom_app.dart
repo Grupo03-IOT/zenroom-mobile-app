@@ -7,13 +7,19 @@ import 'screens/auth_screen.dart';
 import 'screens/home_shell.dart';
 
 class ZenroomApp extends StatefulWidget {
-  const ZenroomApp({super.key});
+  const ZenroomApp({super.key, this.language = AppLanguage.english});
+
+  /// Idioma inicial: el que eligió el usuario o inglés.
+  final AppLanguage language;
+
   @override
   State<ZenroomApp> createState() => _ZenroomAppState();
 }
 
 class _ZenroomAppState extends State<ZenroomApp> {
-  final AppController controller = AppController();
+  late final AppController controller = AppController(
+    language: widget.language,
+  );
   @override
   void dispose() {
     controller.dispose();
@@ -27,8 +33,10 @@ class _ZenroomAppState extends State<ZenroomApp> {
       title: 'Zenroom · SenseWork',
       debugShowCheckedModeBanner: false,
       theme: zenroomTheme(),
-      locale: Locale(language.code),
-      supportedLocales: const [Locale('en'), Locale('es')],
+      locale: language.locale,
+      supportedLocales: [
+        for (final supported in AppLanguage.values) supported.locale,
+      ],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) => ZenroomI18n(
         language: language,

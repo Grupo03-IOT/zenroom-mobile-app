@@ -38,7 +38,7 @@ El token de usuario se mantiene **solo en memoria** y se descarta al salir o rei
 
 Miembro: acceso, registro, búsqueda y filtros de salas, condiciones actuales, historial de ruido, reporte de incomodidad y perfil.
 
-Desde el selector ES/EN de acceso y registro, **Perfil → Idioma** para miembros o **Más → Idioma** para administradores se puede cambiar entre español e inglés. La elección se conserva mientras la app está abierta; al reiniciarla vuelve al idioma inicial (español).
+Desde el selector ES/EN de acceso y registro, **Perfil → Idioma** para miembros o **Más → Idioma** para administradores se puede cambiar entre español e inglés. La app inicia en inglés (`en_US`), sin seguir el idioma del sistema; la elección entre inglés y español (`es_419`) se guarda en el dispositivo y se mantiene al reiniciarla.
 
 Administrador: resumen, alertas, salas, locales, tipos de sala, umbrales, analítica, credenciales Edge, dispositivos, diagnóstico, reportes y miembros.
 
