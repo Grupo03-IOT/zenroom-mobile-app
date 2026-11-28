@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import '../core/config/app_config.dart';
+import '../core/l10n/language_preference.dart';
 import '../core/l10n/zenroom_i18n.dart';
 import '../core/network/cloud_client.dart';
 import '../features/alerting/domain/alert.dart';
@@ -20,7 +23,11 @@ import '../features/monitoring/infrastructure/demo_discomfort_repository.dart';
 import '../features/monitoring/infrastructure/demo_monitoring_repository.dart';
 
 class AppController extends ChangeNotifier {
-  AppController({AlertRepository? alerts, DiscomfortRepository? discomfort}) {
+  AppController({
+    AlertRepository? alerts,
+    DiscomfortRepository? discomfort,
+    AppLanguage language = AppLanguage.english,
+  }) : languageNotifier = ValueNotifier(language) {
     final client = CloudClient(onAccountDisabled: _onAccountDisabled);
     identity = CloudIdentityRepository(client);
     monitoring = AppConfig.demoMode
@@ -70,9 +77,7 @@ class AppController extends ChangeNotifier {
 
   /// Reportes enviados por el miembro; null si no se pudo consultar.
   int? myReportCount;
-  final ValueNotifier<AppLanguage> languageNotifier = ValueNotifier(
-    AppLanguage.spanish,
-  );
+  final ValueNotifier<AppLanguage> languageNotifier;
 
   bool get signedIn => session != null && !session!.isExpired;
   bool get admin => session?.role == UserRole.admin;
@@ -90,6 +95,7 @@ class AppController extends ChangeNotifier {
   void setLanguage(AppLanguage value) {
     if (languageNotifier.value == value) return;
     languageNotifier.value = value;
+    unawaited(saveLanguage(value));
     notifyListeners();
   }
 

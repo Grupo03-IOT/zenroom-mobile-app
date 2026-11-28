@@ -384,6 +384,7 @@ class _AlertSummary extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           LText(alert.correctiveAction!, style: const TextStyle(fontSize: 13)),
+          _DetailRow('Acknowledged by', alert.acknowledgedByName ?? '—'),
         ],
         if (alert.isOpen)
           Align(
@@ -660,9 +661,19 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
                         const SizedBox(height: 14),
                         const ZenSectionTitle('Corrective action'),
                         ZenCard(
-                          child: LText(
-                            alert.correctiveAction!,
-                            style: const TextStyle(fontSize: 13),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              LText(
+                                alert.correctiveAction!,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                'Acknowledged by',
+                                alert.acknowledgedByName ?? '—',
+                              ),
+                            ],
                           ),
                         ),
                       ],

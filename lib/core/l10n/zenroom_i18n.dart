@@ -5,6 +5,11 @@ enum AppLanguage { english, spanish }
 
 extension AppLanguageCode on AppLanguage {
   String get code => this == AppLanguage.spanish ? 'es' : 'en';
+
+  /// en_US (por defecto) o es_419.
+  Locale get locale => this == AppLanguage.spanish
+      ? const Locale('es', '419')
+      : const Locale('en', 'US');
 }
 
 class ZenroomI18n extends InheritedWidget {
@@ -26,6 +31,12 @@ String tr(BuildContext context, String source) =>
 
 String translate(AppLanguage language, String source) {
   if (language == AppLanguage.english) {
+    final failed = RegExp(
+      r'^Error (\d+) al consultar Cloud API\.$',
+    ).firstMatch(source);
+    if (failed != null) {
+      return 'Error ${failed.group(1)} while querying Cloud API.';
+    }
     return _esToEn[source] ?? source;
   }
   final exact = _enToEs[source];
@@ -58,6 +69,8 @@ String translate(AppLanguage language, String source) {
 }
 
 const _esToEn = <String, String>{
+  'No se pudo conectar con Cloud API.': 'Could not connect to Cloud API.',
+  'Token inválido.': 'Invalid token.',
   invalidCredentialsMessage: 'Invalid email or password.',
   accountDisabledMessage:
       'This account is deactivated. Contact an administrator.',
@@ -73,6 +86,7 @@ const _esToEn = <String, String>{
 };
 
 const _enToEs = <String, String>{
+  'Contents': 'Contenido',
   'Welcome back': 'Bienvenido de nuevo',
   'Your spaces and comfort data are waiting.':
       'Tus espacios y datos de confort te esperan.',
@@ -213,6 +227,16 @@ const _enToEs = <String, String>{
   'Threshold 60': 'Umbral 60',
   'Max 67': 'Máx. 67',
   'Corrective action': 'Acción correctiva',
+  'Acknowledged by': 'Atendida por',
+  'Discrepancies': 'Discrepancias',
+  'Only discrepancies': 'Solo discrepancias',
+  'No reports with discrepancies.': 'No hay reportes con discrepancias.',
+  'Discrepancy: the temperature was within the comfort range':
+      'Discrepancia: la temperatura estaba dentro del rango de confort',
+  'Discrepancy: the noise was within the threshold':
+      'Discrepancia: el ruido estaba dentro del umbral',
+  'Discrepancy: the reading was within the threshold':
+      'Discrepancia: la lectura estaba dentro del umbral',
   'Describe what was done': 'Describe lo que se hizo',
   'Acknowledge and save': 'Atender y guardar',
   'Sites & rooms': 'Sedes y salas',

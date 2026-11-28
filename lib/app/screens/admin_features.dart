@@ -1018,6 +1018,7 @@ class ReportsContent extends StatefulWidget {
 class _ReportsContentState extends State<ReportsContent> {
   String tab = 'Discomfort reports';
   String? roomId;
+  bool onlyDiscrepancies = false;
   bool busy = false;
   @override
   Widget build(BuildContext context) {
@@ -1072,18 +1073,36 @@ class _ReportsContentState extends State<ReportsContent> {
                 _pair('Too warm', '${item.warm}'),
                 _pair('Too cold', '${item.cold}'),
                 _pair('Total', '${item.total}'),
+                _pair('Discrepancies', '${item.discrepancies}'),
               ],
             ),
           ),
           const SizedBox(height: 8),
           const ZenSectionTitle('Latest reports'),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilterChip(
+              key: const ValueKey('discrepancy-filter'),
+              label: const LText('Only discrepancies'),
+              selected: onlyDiscrepancies,
+              selectedColor: ZenColors.paleBlue,
+              onSelected: (value) => setState(() => onlyDiscrepancies = value),
+            ),
+          ),
           LiveList<DiscomfortReport>(
-            key: const ValueKey('discomfort-reports'),
-            empty: 'No discomfort reports yet.',
-            load: () =>
-                widget.controller.discomfort.reports(widget.controller.token),
-            itemBuilder: (context, report, _) =>
-                DiscomfortReportDetails(controller: widget.controller, report: report),
+            key: ValueKey('discomfort-reports-$onlyDiscrepancies'),
+            empty: onlyDiscrepancies
+                ? 'No reports with discrepancies.'
+                : 'No discomfort reports yet.',
+            load: () => widget.controller.discomfort.reports(
+              widget.controller.token,
+              discrepancyOnly: onlyDiscrepancies,
+            ),
+            itemBuilder: (context, report, _) => DiscomfortReportDetails(
+              controller: widget.controller,
+              report: report,
+              showDiscrepancy: true,
+            ),
           ),
         ] else
           ZenCard(
@@ -1263,9 +1282,13 @@ class DiscomfortReportDetails extends StatelessWidget {
     super.key,
     required this.controller,
     required this.report,
+    this.showDiscrepancy = false,
   });
   final AppController controller;
   final DiscomfortReport report;
+
+  /// La marca de discrepancia solo se muestra al administrador.
+  final bool showDiscrepancy;
   @override
   Widget build(BuildContext context) => Column(
     key: ValueKey('discomfort-report-${report.id}'),
@@ -1279,6 +1302,29 @@ class DiscomfortReportDetails extends StatelessWidget {
       _pair('Reason', report.category.label),
       _pair('Sent', formatLocalDateTime(report.createdAt)),
       _pair('Reading at that moment', _readingText(context, report.reading)),
+      if (showDiscrepancy && report.discrepancy) ...[
+        const SizedBox(height: 6),
+        Container(
+          key: ValueKey('discrepancy-badge-${report.id}'),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: ZenColors.paleAmber,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: LText(
+            report.discrepancyReason == 'TEMPERATURE_WITHIN_RANGE'
+                ? 'Discrepancy: the temperature was within the comfort range'
+                : report.discrepancyReason == 'NOISE_WITHIN_RANGE'
+                ? 'Discrepancy: the noise was within the threshold'
+                : 'Discrepancy: the reading was within the threshold',
+            style: const TextStyle(
+              fontSize: 12,
+              color: ZenColors.amber,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
       if (report.comment != null) ...[
         const SizedBox(height: 6),
         LText(report.comment!, style: const TextStyle(fontSize: 13)),

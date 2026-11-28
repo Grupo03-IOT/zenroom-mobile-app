@@ -152,5 +152,40 @@ void main() {
     expect(requests.last.url.path, '/api/v1/discomfort-reports/summary');
     expect(summary.single.warm, 5);
     expect(summary.single.total, 8);
+    expect(summary.single.discrepancies, 0);
+  });
+
+  test('parses discrepancy fields defensively', () {
+    final absent = DiscomfortReport.fromJson({
+      'id': 'x',
+      'category': 'NOISE',
+    });
+    expect(absent.discrepancy, isFalse);
+    expect(absent.discrepancyReason, isNull);
+    final flagged = DiscomfortReport.fromJson({
+      'id': 'y',
+      'category': 'WARM',
+      'discrepancy': true,
+      'discrepancyReason': 'TEMPERATURE_WITHIN_RANGE',
+    });
+    expect(flagged.discrepancy, isTrue);
+    expect(flagged.discrepancyReason, 'TEMPERATURE_WITHIN_RANGE');
+  });
+
+  test('discrepancyOnly adds discrepancy=true; summary reads discrepancies', () async {
+    respond = (request) => request.url.path.endsWith('/summary')
+        ? http.Response(
+            jsonEncode([
+              {'room_id': 'r1', 'room_code': 's', 'total': 4, 'discrepancies': 2},
+            ]),
+            200,
+          )
+        : http.Response(jsonEncode([_report]), 200);
+    await repository.reports('tok', discrepancyOnly: true);
+    expect(requests.last.url.queryParameters, {'discrepancy': 'true'});
+    await repository.reports('tok');
+    expect(requests.last.url.queryParameters, isEmpty);
+    final summary = await repository.summary('tok');
+    expect(summary.single.discrepancies, 2);
   });
 }

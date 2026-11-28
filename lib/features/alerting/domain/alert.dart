@@ -53,6 +53,7 @@ class Alert {
     this.closedBy,
     this.acknowledgedAt,
     this.acknowledgedBy,
+    this.acknowledgedByName,
     this.correctiveAction,
   });
 
@@ -69,6 +70,9 @@ class Alert {
   final String? closedBy;
   final DateTime? acknowledgedAt;
   final String? acknowledgedBy;
+
+  /// Nombre completo de quien reconocio la alerta (US37); null si el Cloud no lo envia.
+  final String? acknowledgedByName;
   final String? correctiveAction;
 
   bool get isOpen => status == AlertStatus.open;
@@ -95,6 +99,7 @@ class Alert {
     closedBy: json['closedBy'] as String?,
     acknowledgedAt: _date(json['acknowledgedAt']),
     acknowledgedBy: json['acknowledgedBy'] as String?,
+    acknowledgedByName: json['acknowledgedByName'] as String?,
     correctiveAction: json['correctiveAction'] as String?,
   );
 
@@ -102,6 +107,7 @@ class Alert {
     AlertStatus? status,
     DateTime? acknowledgedAt,
     String? acknowledgedBy,
+    String? acknowledgedByName,
     String? correctiveAction,
   }) => Alert(
     id: id,
@@ -117,6 +123,7 @@ class Alert {
     closedBy: closedBy,
     acknowledgedAt: acknowledgedAt ?? this.acknowledgedAt,
     acknowledgedBy: acknowledgedBy ?? this.acknowledgedBy,
+    acknowledgedByName: acknowledgedByName ?? this.acknowledgedByName,
     correctiveAction: correctiveAction ?? this.correctiveAction,
   );
 
